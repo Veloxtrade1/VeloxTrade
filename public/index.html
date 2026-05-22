@@ -1,19 +1,647 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Velox – Trade like a pro | Online Forex & CFD Broker</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <link rel="stylesheet" href="/css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Velox – Trade Forex, Gold & Crypto | Online CFD Broker</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --primary:#FF6600;--primary-dark:#e55a00;--dark:#0A1628;--dark2:#0d1e35;
+  --text:#0A1628;--muted:#6B7A99;--border:#E8ECF5;--white:#fff;
+  --green:#00C48C;--red:#FF4D4D;--bg:#F5F7FA;
+}
+body{font-family:'Inter',sans-serif;background:var(--white);color:var(--text);overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+/* ── NAV ── */
+.topbar{background:var(--dark);color:#8fa3c4;padding:7px 0;font-size:12px}
+.topbar .inner{max-width:1280px;margin:auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center}
+.topbar a{color:#8fa3c4;margin-left:20px;font-size:12px}
+.topbar a:hover{color:#fff}
+nav{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;box-shadow:0 1px 8px rgba(0,0,0,.06)}
+.nav-inner{max-width:1280px;margin:auto;padding:0 24px;display:flex;align-items:center;height:64px;gap:32px}
+.logo{font-size:26px;font-weight:900;color:var(--dark);letter-spacing:-1px;display:flex;align-items:center;gap:6px}
+.logo span{color:var(--primary)}
+.logo-icon{width:32px;height:32px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:16px}
+.nav-links{display:flex;gap:4px;list-style:none;flex:1}
+.nav-links a{padding:8px 14px;border-radius:6px;font-size:14px;font-weight:500;color:var(--muted);transition:.2s}
+.nav-links a:hover{background:var(--bg);color:var(--text)}
+.nav-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+.btn{padding:9px 22px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:.2s;font-family:'Inter',sans-serif}
+.btn-ghost{background:none;color:var(--dark);border:1.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--primary);color:var(--primary)}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+/* ── HERO ── */
+.hero{background:linear-gradient(135deg,var(--dark) 0%,var(--dark2) 60%,#1a2d4a 100%);color:#fff;padding:72px 0 80px;overflow:hidden;position:relative}
+.hero::after{content:'';position:absolute;right:-200px;top:-100px;width:600px;height:600px;background:radial-gradient(circle,rgba(255,102,0,.15) 0%,transparent 70%);pointer-events:none}
+.hero-inner{max-width:1280px;margin:auto;padding:0 24px;display:grid;grid-template-columns:1fr 480px;gap:64px;align-items:center}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,102,0,.15);border:1px solid rgba(255,102,0,.3);color:#ff9955;padding:6px 14px;border-radius:100px;font-size:12px;font-weight:600;margin-bottom:20px;letter-spacing:.04em}
+.hero h1{font-size:52px;font-weight:900;line-height:1.12;letter-spacing:-2px;margin-bottom:20px}
+.hero h1 .accent{color:var(--primary)}
+.hero-sub{font-size:18px;color:#94a8c8;line-height:1.7;margin-bottom:36px;max-width:500px}
+.hero-stats{display:flex;gap:40px;margin-bottom:40px}
+.hstat h3{font-size:28px;font-weight:800;color:#fff}
+.hstat p{font-size:12px;color:#94a8c8;margin-top:2px}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap}
+.hero-btns .btn{padding:14px 28px;font-size:15px;border-radius:8px}
+.btn-hero{background:var(--primary);color:#fff}
+.btn-hero:hover{background:var(--primary-dark)}
+.btn-demo{background:rgba(255,255,255,.1);color:#fff;border:1.5px solid rgba(255,255,255,.25)}
+.btn-demo:hover{background:rgba(255,255,255,.18)}
+/* Ticker card */
+.ticker-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:24px;backdrop-filter:blur(20px)}
+.tc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.tc-title{font-size:14px;font-weight:600;color:#94a8c8}
+.live-dot{width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.tc-row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.07);cursor:pointer;transition:.2s;border-radius:6px}
+.tc-row:last-child{border:none}
+.tc-row:hover{background:rgba(255,255,255,.04);padding:13px 8px;margin:0 -8px}
+.tc-sym{font-size:14px;font-weight:700}
+.tc-name{font-size:11px;color:#94a8c8;margin-top:1px}
+.tc-price{font-family:'JetBrains Mono','Courier New',monospace;font-size:15px;font-weight:600;text-align:right}
+.tc-chg{font-size:11px;padding:3px 8px;border-radius:100px;font-weight:700;margin-top:3px;text-align:right}
+.up{color:var(--green)}.dn{color:var(--red)}
+.up-bg{background:rgba(0,196,140,.15);color:var(--green)}
+.dn-bg{background:rgba(255,77,77,.15);color:var(--red)}
+/* ── FEATURES ── */
+.section{padding:80px 0}
+.section-inner{max-width:1280px;margin:auto;padding:0 24px}
+.section-label{font-size:12px;font-weight:700;color:var(--primary);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.section-title{font-size:40px;font-weight:800;letter-spacing:-1px;margin-bottom:16px}
+.section-sub{font-size:17px;color:var(--muted);max-width:520px;line-height:1.7}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:48px}
+.feat-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:28px;transition:.3s}
+.feat-card:hover{box-shadow:0 12px 40px rgba(0,0,0,.08);transform:translateY(-4px)}
+.feat-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:16px}
+.feat-card h3{font-size:17px;font-weight:700;margin-bottom:8px}
+.feat-card p{font-size:14px;color:var(--muted);line-height:1.7}
+/* ── MARKETS ── */
+.markets-bg{background:var(--bg)}
+.markets-table{margin-top:40px;border-radius:16px;overflow:hidden;border:1px solid var(--border)}
+.mt-head{display:grid;grid-template-columns:2fr 1.5fr 1.5fr 1fr 1fr;padding:12px 20px;background:var(--dark);color:#94a8c8;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.mt-row{display:grid;grid-template-columns:2fr 1.5fr 1.5fr 1fr 1fr;padding:16px 20px;background:#fff;border-bottom:1px solid var(--border);align-items:center;cursor:pointer;transition:.15s}
+.mt-row:last-child{border:none}
+.mt-row:hover{background:#fafbff}
+.mt-sym{font-weight:700;font-size:14px}
+.mt-name{font-size:11px;color:var(--muted);margin-top:2px}
+.mt-p{font-family:'JetBrains Mono','Courier New',monospace;font-size:14px;font-weight:600}
+.mt-spread{font-size:12px;color:var(--muted)}
+.trade-btn{padding:6px 16px;border-radius:100px;font-size:11px;font-weight:700;cursor:pointer;border:none;font-family:'Inter',sans-serif}
+/* ── ACCOUNTS ── */
+.accounts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:48px}
+.acc-card{background:#fff;border:1px solid var(--border);border-radius:20px;padding:32px;position:relative;overflow:hidden;transition:.3s}
+.acc-card.popular{border-color:var(--primary);box-shadow:0 0 0 1px var(--primary)}
+.acc-card:hover{box-shadow:0 16px 48px rgba(0,0,0,.1)}
+.popular-tag{position:absolute;top:20px;right:20px;background:var(--primary);color:#fff;padding:4px 12px;border-radius:100px;font-size:11px;font-weight:700}
+.acc-type{font-size:11px;font-weight:700;color:var(--primary);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.acc-name{font-size:24px;font-weight:800;letter-spacing:-1px;margin-bottom:6px}
+.acc-desc{font-size:13px;color:var(--muted);margin-bottom:24px}
+.acc-features{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+.acc-feat{display:flex;align-items:center;gap:10px;font-size:13px}
+.acc-feat i{color:var(--green);font-size:12px}
+.acc-feat .val{font-weight:700;margin-left:auto}
+/* ── CTA ── */
+.cta-section{background:linear-gradient(135deg,var(--dark),var(--dark2));color:#fff;padding:80px 0;text-align:center}
+.cta-section h2{font-size:44px;font-weight:900;letter-spacing:-1.5px;margin-bottom:16px}
+.cta-section p{font-size:18px;color:#94a8c8;margin-bottom:36px}
+/* ── FOOTER ── */
+footer{background:var(--dark);color:#6B8099;padding:56px 0 24px}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
+.footer-logo{font-size:22px;font-weight:900;color:#fff;margin-bottom:12px}
+.footer-desc{font-size:13px;line-height:1.8;margin-bottom:20px}
+.footer-col h4{font-size:12px;font-weight:700;color:#94a8c8;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px}
+.footer-col a{display:block;font-size:13px;color:#6B8099;margin-bottom:8px;transition:.2s}
+.footer-col a:hover{color:#fff}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.08);padding-top:24px;font-size:12px;line-height:1.8}
+/* ── MODAL SYSTEM ── */
+.modal-backdrop{position:fixed;inset:0;background:rgba(10,22,40,.7);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+.modal-backdrop.open{display:flex}
+.modal{background:#fff;border-radius:20px;width:100%;max-width:460px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.3);position:relative}
+.modal-header{padding:28px 28px 0}
+.modal-tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:0}
+.modal-tab{flex:1;padding:12px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:.2s;background:none;border-top:none;border-left:none;border-right:none;font-family:'Inter',sans-serif}
+.modal-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+.modal-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:var(--bg);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:16px;transition:.2s}
+.modal-close:hover{background:var(--border);color:var(--text)}
+.modal-body{padding:28px}
+.modal-logo{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.modal-logo span{font-size:22px;font-weight:900;color:var(--dark)}
+.modal-logo span em{color:var(--primary);font-style:normal}
+.modal-subtitle{font-size:13px;color:var(--muted);margin-bottom:24px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;letter-spacing:.02em}
+.form-group input,.form-group select{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;color:var(--text);background:#fff;outline:none;transition:.2s}
+.form-group input:focus,.form-group select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(255,102,0,.1)}
+.form-group input::placeholder{color:#bcc5d6}
+.form-group.has-icon{position:relative}
+.form-group.has-icon input{padding-left:40px}
+.form-group.has-icon i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
+.form-group.has-icon .toggle-pw{left:auto;right:12px;cursor:pointer}
+.submit-btn{width:100%;padding:13px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;border:none;background:var(--primary);color:#fff;font-family:'Inter',sans-serif;transition:.2s;margin-top:4px}
+.submit-btn:hover{background:var(--primary-dark)}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed}
+.form-divider{text-align:center;font-size:12px;color:var(--muted);margin:14px 0;position:relative}
+.form-divider::before,.form-divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--border)}
+.form-divider::before{left:0}.form-divider::after{right:0}
+.form-error{background:#fff5f5;border:1px solid #ffcdd2;border-radius:8px;padding:10px 12px;font-size:13px;color:#c62828;margin-bottom:14px;display:none}
+.form-success{background:#f0fff8;border:1px solid #b2dfdb;border-radius:8px;padding:10px 12px;font-size:13px;color:#1b5e20;margin-bottom:14px;display:none}
+.terms-note{font-size:11px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.6}
+.terms-note a{color:var(--primary)}
+.switch-mode{text-align:center;font-size:13px;color:var(--muted);margin-top:14px}
+.switch-mode a{color:var(--primary);font-weight:600;cursor:pointer}
+/* country select flag */
+.country-row{display:flex;gap:8px}
+.country-row select{width:160px;flex-shrink:0}
+.country-row input{flex:1}
+/* spinner */
+.spinner{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin:auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* ── RESPONSIVE ── */
+@media(max-width:1024px){
+  .hero-inner{grid-template-columns:1fr;}.ticker-card{display:none}
+  .features-grid{grid-template-columns:1fr 1fr}.accounts-grid{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr 1fr}.nav-links{display:none}
+  .hero h1{font-size:36px}.section-title{font-size:30px}
+}
+@media(max-width:600px){
+  .hero{padding:48px 0}.features-grid{grid-template-columns:1fr}
+  .hero-stats{gap:24px}.cta-section h2{font-size:30px}
+  .modal{margin:16px;border-radius:16px}.form-row{grid-template-columns:1fr}
+}
+</style>
 </head>
 <body>
-  <div class="top-bar"><div class="container top-bar-flex"><div class="trust-badge"><i class="fas fa-shield-alt"></i> Regulated broker</div><div class="support"><i class="fas fa-headset"></i> 24/7 support</div></div></div>
-  <nav class="navbar"><div class="container nav-container"><div class="logo"><i class="fas fa-rocket"></i> Velox</div><ul class="nav-links"><li><a href="#">Trade</a></li><li><a href="#">Platforms</a></li><li><a href="#">Accounts</a></li><li><a href="#">Tools</a></li><li><a href="#">Partners</a></li><li><a href="#">Resources</a></li></ul><div class="nav-buttons"><a href="#" id="loginBtn" class="btn-outline">Log in</a><a href="#" id="signupBtn" class="btn-primary">Sign up</a></div><div class="mobile-toggle"><i class="fas fa-bars"></i></div></div></nav>
-  <section class="hero"><div class="container hero-grid"><div class="hero-left"><div class="badge">Trusted by 800,000+ traders</div><h1>Trade smarter with <span class="gradient-text">Velox</span><br> 0.0 spreads*</h1><p class="hero-desc">Experience institutional-grade execution, lightning-fast withdrawals, and leverage up to 1:2000.</p><div class="hero-stats"><div class="stat"><h3>$2.4T+</h3><span>Monthly volume</span></div><div class="stat"><h3>800k+</h3><span>Active clients</span></div><div class="stat"><h3>0.0</h3><span>pips from</span></div></div><div class="hero-actions"><a href="#" id="heroSignupBtn" class="btn-primary">Open account <i class="fas fa-arrow-right"></i></a><a href="#" class="btn-outline">Try demo</a></div></div><div class="hero-right"><div class="live-ticker-card"><div class="ticker-header">Live prices <i class="fas fa-chart-line"></i></div><div id="liveTicker" class="ticker-list">Loading...</div><div class="ticker-footer">Real-time market data</div></div></div></div></section>
-  <footer class="footer"><div class="container"><div class="copyright"><p>&copy; 2025 Velox Global. Trading Forex and CFDs carries a high level of risk. <br>*Spreads from 0.0 pips on Raw Spread accounts. Commission applies.</p></div></div></footer>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/app.js"></script>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="inner">
+    <span><i class="fas fa-shield-alt" style="color:#FF6600;margin-right:6px"></i> Regulated · Trusted · 0.0 Spreads</span>
+    <div>
+      <a href="#"><i class="fas fa-headset"></i> 24/7 Support</a>
+      <a href="#"><i class="fas fa-globe"></i> English</a>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo"><div class="logo-icon">V</div> Vel<span>ox</span></a>
+    <ul class="nav-links">
+      <li><a href="#">Trade</a></li>
+      <li><a href="#">Markets</a></li>
+      <li><a href="#">Platforms</a></li>
+      <li><a href="#">Accounts</a></li>
+      <li><a href="#">Partners</a></li>
+      <li><a href="#">Resources</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="btn btn-ghost" onclick="openModal('login')">Log in</button>
+      <button class="btn btn-primary" onclick="openModal('signup')">Open Account</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-badge"><span class="live-dot"></span> Live Markets · Instant Execution</div>
+      <h1>Trade <span class="accent">Smarter.</span><br>Win Bigger.</h1>
+      <p class="hero-sub">Forex, Gold, Oil, Crypto & Stocks — ultra-low spreads from 0.0 pips, leverage up to 1:2000, deposit with USDT or Bitcoin.</p>
+      <div class="hero-stats">
+        <div class="hstat"><h3>50+</h3><p>Instruments</p></div>
+        <div class="hstat"><h3>0.0</h3><p>Pips from</p></div>
+        <div class="hstat"><h3>1:2000</h3><p>Max leverage</p></div>
+        <div class="hstat"><h3>$10</h3><p>Min deposit</p></div>
+      </div>
+      <div class="hero-btns">
+        <button class="btn btn-hero" onclick="openModal('signup')"><i class="fas fa-rocket" style="margin-right:8px"></i>Open Account Free</button>
+        <button class="btn btn-demo" onclick="openModal('signup')">Try Demo Account</button>
+      </div>
+    </div>
+    <div class="ticker-card">
+      <div class="tc-header">
+        <span class="tc-title">Live Prices</span>
+        <span class="live-dot"></span>
+      </div>
+      <div id="liveTicker">
+        <div class="tc-row"><div><div class="tc-sym">EUR/USD</div><div class="tc-name">Euro vs Dollar</div></div><div><div class="tc-price">1.08432</div><div class="tc-chg up-bg">+0.12%</div></div></div>
+        <div class="tc-row"><div><div class="tc-sym">XAU/USD</div><div class="tc-name">Gold</div></div><div><div class="tc-price">2314.50</div><div class="tc-chg up-bg">+0.34%</div></div></div>
+        <div class="tc-row"><div><div class="tc-sym">BTC/USD</div><div class="tc-name">Bitcoin</div></div><div><div class="tc-price">67,842</div><div class="tc-chg dn-bg">-0.21%</div></div></div>
+        <div class="tc-row"><div><div class="tc-sym">GBP/USD</div><div class="tc-name">Cable</div></div><div><div class="tc-price">1.26781</div><div class="tc-chg up-bg">+0.08%</div></div></div>
+        <div class="tc-row"><div><div class="tc-sym">WTI Oil</div><div class="tc-name">Crude Oil</div></div><div><div class="tc-price">78.42</div><div class="tc-chg dn-bg">-0.15%</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section">
+  <div class="section-inner">
+    <div class="section-label">Why choose Velox</div>
+    <div class="section-title">Built for serious traders</div>
+    <p class="section-sub">Everything you need to trade the world's markets — fast, fair, and transparent.</p>
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon" style="background:#fff3e0"><i class="fas fa-bolt" style="color:#FF6600"></i></div>
+        <h3>Instant Execution</h3>
+        <p>Orders filled in under 25ms. No requotes, no rejections. Market prices, always.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:#e8f5e9"><i class="fas fa-chart-line" style="color:#00C48C"></i></div>
+        <h3>0.0 Pip Spreads</h3>
+        <p>Raw interbank spreads on all major pairs. Transparent pricing with low commission.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:#e3f2fd"><i class="fas fa-shield-alt" style="color:#1976D2"></i></div>
+        <h3>Segregated Funds</h3>
+        <p>Your funds are kept in a separate account, fully protected at all times.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:#f3e5f5"><i class="fab fa-bitcoin" style="color:#9C27B0"></i></div>
+        <h3>Crypto Deposits</h3>
+        <p>Deposit and withdraw with USDT, BTC. No banks needed. Fast, borderless payments.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:#fce4ec"><i class="fas fa-mobile-alt" style="color:#E91E63"></i></div>
+        <h3>Trade Anywhere</h3>
+        <p>Full trading platform in your browser. Works on any device, any time.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:#e0f7fa"><i class="fas fa-headset" style="color:#00ACC1"></i></div>
+        <h3>24/7 Support</h3>
+        <p>Multilingual support team ready around the clock via live chat and WhatsApp.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARKETS -->
+<section class="section markets-bg">
+  <div class="section-inner">
+    <div class="section-label">Markets</div>
+    <div class="section-title">50+ instruments to trade</div>
+    <p class="section-sub">Forex, metals, commodities, crypto, indices and stocks — all in one account.</p>
+    <div class="markets-table">
+      <div class="mt-head"><span>Instrument</span><span>Bid</span><span>Ask</span><span>Spread</span><span>Action</span></div>
+      <div class="mt-row"><div><div class="mt-sym">EUR/USD</div><div class="mt-name">Euro / US Dollar</div></div><span class="mt-p up" id="m-eurusd-bid">1.08427</span><span class="mt-p" id="m-eurusd-ask">1.08432</span><span class="mt-spread">0.5</span><button class="trade-btn btn-primary" onclick="openModal('signup')">Trade</button></div>
+      <div class="mt-row"><div><div class="mt-sym">GBP/USD</div><div class="mt-name">British Pound / Dollar</div></div><span class="mt-p up" id="m-gbpusd-bid">1.26778</span><span class="mt-p" id="m-gbpusd-ask">1.26784</span><span class="mt-spread">0.6</span><button class="trade-btn btn-primary" onclick="openModal('signup')">Trade</button></div>
+      <div class="mt-row"><div><div class="mt-sym">XAU/USD</div><div class="mt-name">Gold Spot</div></div><span class="mt-p up" id="m-xauusd-bid">2314.10</span><span class="mt-p" id="m-xauusd-ask">2314.50</span><span class="mt-spread">0.4</span><button class="trade-btn btn-primary" onclick="openModal('signup')">Trade</button></div>
+      <div class="mt-row"><div><div class="mt-sym">BTC/USD</div><div class="mt-name">Bitcoin</div></div><span class="mt-p dn" id="m-btcusd-bid">67831</span><span class="mt-p" id="m-btcusd-ask">67853</span><span class="mt-spread">22</span><button class="trade-btn btn-primary" onclick="openModal('signup')">Trade</button></div>
+      <div class="mt-row"><div><div class="mt-sym">ETH/USD</div><div class="mt-name">Ethereum</div></div><span class="mt-p up">3427.10</span><span class="mt-p">3429.10</span><span class="mt-spread">2.0</span><button class="trade-btn btn-primary" onclick="openModal('signup')">Trade</button></div>
+      <div class="mt-row"><div><div class="mt-sym">US30</div><div class="mt-name">Dow Jones 30</div></div><span class="mt-p up">38,410</span><span class="mt-p">38,430</span><span class="mt-spread">2.0</span><button class="trade-btn btn-primary" onclick="openModal('signup')">Trade</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ACCOUNTS -->
+<section class="section">
+  <div class="section-inner">
+    <div class="section-label">Account types</div>
+    <div class="section-title">Choose your account</div>
+    <p class="section-sub">Three account types designed for traders of all levels.</p>
+    <div class="accounts-grid">
+      <div class="acc-card">
+        <div class="acc-type">Standard</div>
+        <div class="acc-name">Standard</div>
+        <div class="acc-desc">Perfect for beginners. No commission, competitive spreads.</div>
+        <div class="acc-features">
+          <div class="acc-feat"><i class="fas fa-check-circle"></i> Min deposit <span class="val">$10</span></div>
+          <div class="acc-feat"><i class="fas fa-check-circle"></i> Spreads from <span class="val">0.3 pips</span></div>
+          <div class="acc-feat"><i class="fas fa-check-circle"></i> Commission <span class="val">None</span></div>
+          <div class="acc-feat"><i class="fas fa-check-circle"></i> Leverage up to <span class="val">1:2000</span></div>
+        </div>
+        <button class="submit-btn" onclick="openModal('signup')">Open Standard Account</button>
+      </div>
+      <div class="acc-card popular">
+        <div class="popular-tag">Most Popular</div>
+        <div class="acc-type">Professional</div>
+        <div class="acc-name">Raw Spread</div>
+        <div class="acc-desc">Raw interbank spreads. Ideal for experienced traders.</div>
+        <div class="acc-features">
+          <div class="acc-feat"><i class="fas fa-check-circle"></i> Min deposit <span class="val">$200</span></div>
+          <div class="acc-feat"><i class="fas fa-check-circle"></i> Spreads from <span class="val">0.0 pips</span></div>
+          <div class="acc-feat"><i class="fas fa-check-circle"></i> Commission <span class="val">$3.5/lot</span></div>
+          <div class="acc-feat"><i class="fas fa-check-circle"></i> Leverage up to <span class="val">1:2000</span></div>
+        </div>
+        <button class="submit-btn" onclick="openModal('signup')">Open Raw Spread Account</button>
+      </div>
+      <div class="acc-card">
+        <div class="acc-type">Demo</div>
+        <div class="acc-name">Demo</div>
+        <div class="acc-desc">Practice with $10,000 virtual funds. No risk, real prices.</div>
+        <div class="acc-features">
+          <div class="acc-feat"><i class="fas fa-check-circle"></i> Virtual funds <span class="val">$10,000</span></div>
+          <div class="acc-feat"><i class="fas fa-check-circle"></i> Real market prices <span class="val">✓</span></div>
+          <div class="acc-feat"><i class="fas fa-check-circle"></i> No deposit required <span class="val">✓</span></div>
+          <div class="acc-feat"><i class="fas fa-check-circle"></i> Instant activation <span class="val">✓</span></div>
+        </div>
+        <button class="submit-btn" style="background:#0A1628" onclick="openModal('signup')">Open Demo Account</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="section-inner">
+    <h2>Start trading in minutes</h2>
+    <p>Join thousands of traders. Open a free account today.</p>
+    <button class="btn btn-hero" style="font-size:16px;padding:16px 36px;border-radius:8px" onclick="openModal('signup')"><i class="fas fa-rocket" style="margin-right:8px"></i>Open Free Account</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="section-inner">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Vel<span style="color:#FF6600">ox</span></div>
+        <div class="footer-desc">A global online trading platform offering Forex, CFDs, Crypto and more. Serving traders across South Asia.</div>
+      </div>
+      <div class="footer-col"><h4>Trade</h4><a href="#">Forex</a><a href="#">Gold & Metals</a><a href="#">Crypto</a><a href="#">Indices</a><a href="#">Stocks</a></div>
+      <div class="footer-col"><h4>Company</h4><a href="#">About Us</a><a href="#">Legal Documents</a><a href="#">Partners</a><a href="#">Careers</a></div>
+      <div class="footer-col"><h4>Support</h4><a href="#">Help Center</a><a href="#">Contact Us</a><a href="#">WhatsApp</a><a href="#">Telegram</a></div>
+    </div>
+    <div class="footer-bottom">
+      <p>Risk Warning: Trading CFDs involves significant risk of loss. 74-89% of retail accounts lose money. You should not invest more than you can afford to lose.</p>
+      <p style="margin-top:8px">© 2025 Velox Global Ltd. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════ AUTH MODAL ═══════ -->
+<div class="modal-backdrop" id="authModal" onclick="handleBackdropClick(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    <div class="modal-header">
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tab-signup" onclick="switchTab('signup')">Open Account</button>
+        <button class="modal-tab" id="tab-login" onclick="switchTab('login')">Log In</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-logo"><div class="logo-icon" style="width:28px;height:28px;font-size:14px">V</div><span>Vel<em>ox</em></span></div>
+      <div class="modal-subtitle" id="modal-subtitle">Create your trading account in under 2 minutes.</div>
+
+      <div class="form-error" id="formError"></div>
+      <div class="form-success" id="formSuccess"></div>
+
+      <!-- SIGNUP FORM -->
+      <form id="signupForm" onsubmit="handleSignup(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name</label>
+            <input type="text" id="s-fname" placeholder="John" required>
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" id="s-lname" placeholder="Smith" required>
+          </div>
+        </div>
+        <div class="form-group has-icon">
+          <label>Email Address</label>
+          <i class="fas fa-envelope"></i>
+          <input type="email" id="s-email" placeholder="you@email.com" required>
+        </div>
+        <div class="form-group">
+          <label>Country</label>
+          <select id="s-country" required>
+            <option value="">Select your country</option>
+            <option value="Pakistan">🇵🇰 Pakistan</option>
+            <option value="Bangladesh">🇧🇩 Bangladesh</option>
+            <option value="Sri Lanka">🇱🇰 Sri Lanka</option>
+            <option value="Nepal">🇳🇵 Nepal</option>
+            <option value="Bhutan">🇧🇹 Bhutan</option>
+            <option value="Maldives">🇲🇻 Maldives</option>
+          </select>
+        </div>
+        <div class="form-group has-icon">
+          <label>Password</label>
+          <i class="fas fa-lock"></i>
+          <input type="password" id="s-password" placeholder="Min. 8 characters" required minlength="8">
+          <i class="fas fa-eye toggle-pw" onclick="togglePw('s-password',this)"></i>
+        </div>
+        <button type="submit" class="submit-btn" id="signupBtn">
+          <span id="signupBtnText">Create Free Account</span>
+          <div class="spinner" id="signupSpinner"></div>
+        </button>
+        <p class="terms-note">By creating an account you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. CFD trading involves significant risk.</p>
+      </form>
+
+      <!-- LOGIN FORM -->
+      <form id="loginForm" style="display:none" onsubmit="handleLogin(event)">
+        <div class="form-group has-icon">
+          <label>Email Address</label>
+          <i class="fas fa-envelope"></i>
+          <input type="email" id="l-email" placeholder="you@email.com" required>
+        </div>
+        <div class="form-group has-icon">
+          <label>Password</label>
+          <i class="fas fa-lock"></i>
+          <input type="password" id="l-password" placeholder="Your password" required>
+          <i class="fas fa-eye toggle-pw" onclick="togglePw('l-password',this)"></i>
+        </div>
+        <button type="submit" class="submit-btn" id="loginBtn">
+          <span id="loginBtnText">Log In to Account</span>
+          <div class="spinner" id="loginSpinner"></div>
+        </button>
+        <div class="switch-mode">Don't have an account? <a onclick="switchTab('signup')">Open one free</a></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const API = '';
+
+// ── LIVE PRICES ──────────────────────────────────────────────
+const socket = io();
+let prices = {};
+
+socket.on('initPrices', (data) => {
+  prices = data.prices || data || {};
+  updateTicker();
+});
+socket.on('allPrices', (data) => {
+  prices = data.prices || prices;
+  updateTicker();
+});
+socket.on('priceUpdate', (update) => {
+  Object.assign(prices, update);
+  updateTicker();
+});
+
+function fmt5(v){ return v ? v.toFixed(5) : '—'; }
+function fmt2(v){ return v ? v.toFixed(2) : '—'; }
+
+function updateTicker(){
+  const pairs = [
+    {s:'EURUSD',n:'Euro / Dollar',bid:prices.EURUSD,bid2:el('m-eurusd-bid'),ask2:el('m-eurusd-ask'),f:fmt5},
+    {s:'GBPUSD',n:'GBP / Dollar',bid:prices.GBPUSD,bid2:el('m-gbpusd-bid'),ask2:el('m-gbpusd-ask'),f:fmt5},
+    {s:'XAUUSD',n:'Gold Spot',bid:prices.XAUUSD,bid2:el('m-xauusd-bid'),ask2:el('m-xauusd-ask'),f:fmt2},
+    {s:'BTCUSD',n:'Bitcoin',bid:prices.BTCUSD,bid2:el('m-btcusd-bid'),ask2:el('m-btcusd-ask'),f:fmt2},
+  ];
+  // Update market table
+  pairs.forEach(p=>{
+    if(p.bid && p.bid2){
+      const sp = p.bid * 0.00005;
+      p.bid2.textContent = p.f(p.bid - sp);
+      if(p.ask2) p.ask2.textContent = p.f(p.bid + sp);
+    }
+  });
+  // Update ticker card
+  const tc = el('liveTicker');
+  if(tc && Object.keys(prices).length){
+    const show = [
+      {s:'EURUSD',n:'Euro vs Dollar',f:fmt5},
+      {s:'XAUUSD',n:'Gold',f:fmt2},
+      {s:'BTCUSD',n:'Bitcoin',f:fmt2},
+      {s:'GBPUSD',n:'Cable',f:fmt5},
+      {s:'WTIUSD',n:'Crude Oil',f:fmt2},
+    ];
+    tc.innerHTML = show.map(({s,n,f})=>{
+      const p = prices[s]||0;
+      const chg = (Math.random()-.4)*.3;
+      const cls = chg>=0?'up-bg':'dn-bg';
+      return `<div class="tc-row" onclick="openModal('signup')">
+        <div><div class="tc-sym">${s.replace('USD','/USD')}</div><div class="tc-name">${n}</div></div>
+        <div><div class="tc-price">${f(p)}</div><div class="tc-chg ${cls}">${chg>=0?'+':''}${chg.toFixed(2)}%</div></div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function el(id){ return document.getElementById(id); }
+
+// ── MODAL ────────────────────────────────────────────────────
+function openModal(tab='signup'){
+  el('authModal').classList.add('open');
+  switchTab(tab);
+  document.body.style.overflow='hidden';
+}
+function closeModal(){
+  el('authModal').classList.remove('open');
+  document.body.style.overflow='';
+  clearMessages();
+}
+function handleBackdropClick(e){ if(e.target===el('authModal')) closeModal(); }
+
+function switchTab(tab){
+  el('signupForm').style.display = tab==='signup'?'':'none';
+  el('loginForm').style.display  = tab==='login'?'':'none';
+  el('tab-signup').classList.toggle('active', tab==='signup');
+  el('tab-login').classList.toggle('active', tab==='login');
+  el('modal-subtitle').textContent = tab==='signup'
+    ? 'Create your trading account in under 2 minutes.'
+    : 'Welcome back. Log in to your account.';
+  clearMessages();
+}
+
+function clearMessages(){
+  el('formError').style.display='none';
+  el('formSuccess').style.display='none';
+}
+function showError(msg){ el('formError').textContent=msg; el('formError').style.display='block'; el('formSuccess').style.display='none'; }
+function showSuccess(msg){ el('formSuccess').textContent=msg; el('formSuccess').style.display='block'; el('formError').style.display='none'; }
+
+function togglePw(id, icon){
+  const inp = el(id);
+  if(inp.type==='password'){ inp.type='text'; icon.classList.replace('fa-eye','fa-eye-slash'); }
+  else { inp.type='password'; icon.classList.replace('fa-eye-slash','fa-eye'); }
+}
+
+function setLoading(loading, form){
+  if(form==='signup'){
+    el('signupBtn').disabled=loading;
+    el('signupBtnText').style.display=loading?'none':'';
+    el('signupSpinner').style.display=loading?'block':'none';
+  } else {
+    el('loginBtn').disabled=loading;
+    el('loginBtnText').style.display=loading?'none':'';
+    el('loginSpinner').style.display=loading?'block':'none';
+  }
+}
+
+// ── SIGNUP ───────────────────────────────────────────────────
+async function handleSignup(e){
+  e.preventDefault();
+  clearMessages();
+  const fname = el('s-fname').value.trim();
+  const lname = el('s-lname').value.trim();
+  const email = el('s-email').value.trim();
+  const country = el('s-country').value;
+  const password = el('s-password').value;
+
+  if(!fname||!lname||!email||!country||!password) return showError('Please fill in all fields.');
+  if(password.length<8) return showError('Password must be at least 8 characters.');
+
+  setLoading(true,'signup');
+  try{
+    const res = await fetch('/api/auth/register',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email, password, fullName:`${fname} ${lname}`, country})
+    });
+    const data = await res.json();
+    if(data.token){
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      showSuccess('Account created! Redirecting to dashboard...');
+      setTimeout(()=>{ location.href='/dashboard.html'; }, 1200);
+    } else {
+      showError(data.msg || 'Registration failed. Please try again.');
+    }
+  } catch(err){
+    showError('Connection error. Please check your internet and try again.');
+  }
+  setLoading(false,'signup');
+}
+
+// ── LOGIN ─────────────────────────────────────────────────────
+async function handleLogin(e){
+  e.preventDefault();
+  clearMessages();
+  const email = el('l-email').value.trim();
+  const password = el('l-password').value;
+  if(!email||!password) return showError('Please enter your email and password.');
+
+  setLoading(true,'login');
+  try{
+    const res = await fetch('/api/auth/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email, password})
+    });
+    const data = await res.json();
+    if(data.token){
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      showSuccess('Login successful! Redirecting...');
+      setTimeout(()=>{ location.href='/dashboard.html'; }, 1000);
+    } else {
+      showError(data.msg || 'Invalid email or password.');
+    }
+  } catch(err){
+    showError('Connection error. Please try again.');
+  }
+  setLoading(false,'login');
+}
+
+// Auto-open modal if already logged in check
+if(localStorage.getItem('token')){
+  // User has token — show dashboard link in nav
+}
+
+// Escape key closes modal
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+</script>
 </body>
 </html>
