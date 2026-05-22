@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Velox – Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav class="dashboard-nav">
+  <div class="container nav-flex">
+    <div class="logo">Velox</div>
+    <div class="nav-center">
+      <div class="price-strip" id="priceStrip"></div>
+    </div>
+    <div class="nav-right">
+      <span id="userEmail" class="user-email"></span>
+      <span class="balance-badge">$<span id="balance">0.00</span></span>
+      <button id="depositBtn" class="btn-primary">Deposit</button>
+      <button id="logoutBtn" class="btn-outline">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div class="dash-layout">
+  <!-- LEFT: Instrument Panel -->
+  <div class="instrument-panel">
+    <div class="ip-search">
+      <input type="text" id="symSearch" placeholder="Search symbol..." oninput="filterSymbols(this.value)">
+    </div>
+    <div class="ip-cats">
+      <button class="cat-btn active" onclick="filterCat('all',this)">All</button>
+      <button class="cat-btn" onclick="filterCat('forex',this)">Forex</button>
+      <button class="cat-btn" onclick="filterCat('crypto',this)">Crypto</button>
+      <button class="cat-btn" onclick="filterCat('commodities',this)">Commodities</button>
+      <button class="cat-btn" onclick="filterCat('indices',this)">Indices</button>
+      <button class="cat-btn" onclick="filterCat('stocks',this)">Stocks</button>
+    </div>
+    <div class="ip-list" id="instrumentList"></div>
+  </div>
+
+  <!-- CENTER: Chart + Trade -->
+  <div class="center-panel">
+    <div class="chart-header">
+      <div class="ch-left">
+        <span class="ch-symbol" id="chartSymbol">EUR/USD</span>
+        <span class="ch-price" id="chartPrice">1.08432</span>
+        <span class="ch-change up" id="chartChange">+0.12%</span>
+      </div>
+      <div class="ch-right">
+        <span>Spread: <b id="chartSpread">0.0002</b></span>
+        <span>Leverage: <b>1:500</b></span>
+      </div>
+    </div>
+
+    <!-- TradingView Chart Widget -->
+    <div id="chartContainer" class="chart-container">
+      <div id="tradingview_chart"></div>
+    </div>
+
+    <!-- Order Form -->
+    <div class="order-form">
+      <div class="of-prices">
+        <div class="of-sell" onclick="setSide('sell')">
+          <div class="of-label">SELL</div>
+          <div class="of-price" id="ofSell">1.08427</div>
+        </div>
+        <div class="of-buy" onclick="setSide('buy')">
+          <div class="of-label">BUY</div>
+          <div class="of-price" id="ofBuy">1.08437</div>
+        </div>
+      </div>
+      <div class="of-inputs">
+        <div class="of-field">
+          <label>Volume (lots)</label>
+          <input type="number" id="quantity" value="0.10" step="0.01" min="0.01">
+        </div>
+        <div class="of-field">
+          <label>Order Type</label>
+          <select id="orderType">
+            <option value="market">Market</option>
+            <option value="limit">Limit</option>
+          </select>
+        </div>
+        <div class="of-field">
+          <label>Stop Loss</label>
+          <input type="number" id="stopLoss" placeholder="Optional">
+        </div>
+        <div class="of-field">
+          <label>Take Profit</label>
+          <input type="number" id="takeProfit" placeholder="Optional">
+        </div>
+      </div>
+      <div class="of-btns">
+        <button id="sellBtn" class="btn-sell" onclick="placeOrder('sell')">▼ SELL</button>
+        <button id="buyBtn" class="btn-buy" onclick="placeOrder('buy')">▲ BUY</button>
+      </div>
+      <div id="tradeMsg" class="trade-msg"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Positions -->
+  <div class="right-panel">
+    <div class="rp-tabs">
+      <button class="rp-tab active" onclick="showTab('positions',this)">Positions</button>
+      <button class="rp-tab" onclick="showTab('history',this)">History</button>
+      <button class="rp-tab" onclick="showTab('wallet',this)">Wallet</button>
+    </div>
+    <div id="tab-positions" class="rp-content">
+      <div id="positionsPanel"><p class="empty-msg">No open positions</p></div>
+    </div>
+    <div id="tab-history" class="rp-content" style="display:none">
+      <ul id="ordersList" class="orders-list"></ul>
+    </div>
+    <div id="tab-wallet" class="rp-content" style="display:none">
+      <div class="wallet-stats">
+        <div class="ws-item"><label>Balance</label><span id="w-balance">$0.00</span></div>
+        <div class="ws-item"><label>Equity</label><span id="w-equity">$0.00</span></div>
+        <div class="ws-item"><label>Free Margin</label><span id="w-margin">$0.00</span></div>
+        <div class="ws-item"><label>Open P&L</label><span id="w-pl" class="up">$0.00</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DEPOSIT MODAL -->
+<div id="depositModal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3>Deposit with Crypto</h3>
+    <div class="deposit-methods">
+      <div class="dep-method">
+        <h4>Bitcoin (BTC)</h4>
+        <div class="dep-addr"><span id="btcAddr"></span><button onclick="copyText('btcAddr')">Copy</button></div>
+        <img id="btcQR" width="140">
+      </div>
+      <div class="dep-method">
+        <h4>USDT (TRC20)</h4>
+        <div class="dep-addr"><span id="usdtAddr"></span><button onclick="copyText('usdtAddr')">Copy</button></div>
+        <img id="usdtQR" width="140">
+      </div>
+    </div>
+    <p class="dep-note">Send exact amount. After confirming your transaction, contact support with your TX hash. Balance credited within 30 minutes.</p>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const token = localStorage.getItem('token');
+if (!token) location.href = '/';
+
+const socket = io();
+let allPrices = {};
+let allCategories = {};
+let currentSym = 'EURUSD';
+let currentSide = 'buy';
+let currentUser = null;
+let openPositions = [];
+
+// ── PRICE UPDATE ─────────────────────────────────────────────
+socket.on('initPrices', (data) => {
+  allPrices = data.prices || {};
+  allCategories = data.categories || {};
+  renderInstrumentList();
+  renderPriceStrip();
+  updateChartHeader();
+});
+
+socket.on('allPrices', (data) => {
+  const prev = {...allPrices};
+  allPrices = data.prices || allPrices;
+  renderInstrumentList(prev);
+  renderPriceStrip();
+  updateChartHeader();
+  updatePositionsPL();
+});
+
+socket.on('priceUpdate', (update) => {
+  Object.assign(allPrices, update);
+  updateChartHeader();
+});
+
+function fmt(sym, p) {
+  if (!p) return '—';
+  if (['BTCUSD','ETHUSD','BNBUSD','SOLUSD'].includes(sym)) return p.toFixed(2);
+  if (['US30','SPX500','NAS100','DAX40','FTSE100','NIKKEI','ASX200'].includes(sym)) return p.toFixed(1);
+  if (['AAPL','MSFT','AMZN','GOOGL','TSLA','NVDA','META','NFLX','BABA','JPM'].includes(sym)) return p.toFixed(2);
+  if (sym.includes('JPY')) return p.toFixed(3);
+  return p.toFixed(5);
+}
+
+// ── INSTRUMENT LIST ───────────────────────────────────────────
+let filterCatVal = 'all', filterQuery = '';
+
+const symNames = {
+  EURUSD:'EUR/USD',GBPUSD:'GBP/USD',USDJPY:'USD/JPY',USDCHF:'USD/CHF',AUDUSD:'AUD/USD',
+  USDCAD:'USD/CAD',NZDUSD:'NZD/USD',EURGBP:'EUR/GBP',EURJPY:'EUR/JPY',GBPJPY:'GBP/JPY',
+  AUDJPY:'AUD/JPY',CADJPY:'CAD/JPY',EURCHF:'EUR/CHF',GBPCHF:'GBP/CHF',GBPAUD:'GBP/AUD',
+  EURCAD:'EUR/CAD',EURNZD:'EUR/NZD',
+  XAUUSD:'Gold',XAGUSD:'Silver',WTIUSD:'WTI Oil',BRENTUSD:'Brent Oil',XPTUSD:'Platinum',NATURALGAS:'Nat Gas',
+  BTCUSD:'Bitcoin',ETHUSD:'Ethereum',BNBUSD:'BNB',SOLUSD:'Solana',XRPUSD:'XRP',
+  ADAUSD:'Cardano',DOTUSD:'Polkadot',AVAXUSD:'Avalanche',MATICUSD:'Polygon',
+  LINKUSD:'Chainlink',LTCUSD:'Litecoin',DOGEUSD:'Dogecoin',
+  US30:'Dow Jones',SPX500:'S&P 500',NAS100:'Nasdaq 100',DAX40:'DAX 40',
+  FTSE100:'FTSE 100',NIKKEI:'Nikkei 225',ASX200:'ASX 200',
+  AAPL:'Apple',MSFT:'Microsoft',AMZN:'Amazon',GOOGL:'Google',TSLA:'Tesla',
+  NVDA:'NVIDIA',META:'Meta',NFLX:'Netflix',BABA:'Alibaba',JPM:'JPMorgan',
+};
+
+function renderInstrumentList(prev={}) {
+  const el = document.getElementById('instrumentList');
+  if (!el) return;
+  let syms = Object.keys(allPrices);
+  if (filterCatVal !== 'all' && allCategories[filterCatVal]) syms = allCategories[filterCatVal];
+  if (filterQuery) syms = syms.filter(s => s.toLowerCase().includes(filterQuery) || (symNames[s]||'').toLowerCase().includes(filterQuery));
+  el.innerHTML = syms.map(s => {
+    const p = allPrices[s], pp = prev[s]||p;
+    const chg = pp ? ((p-pp)/pp*100) : 0;
+    const dir = p > pp ? 'up' : p < pp ? 'dn' : '';
+    return `<div class="ip-item ${s===currentSym?'active':''} ${dir}" onclick="selectSymbol('${s}')">
+      <div class="ip-name"><b>${s}</b><span>${symNames[s]||s}</span></div>
+      <div class="ip-price"><b>${fmt(s,p)}</b><span class="${chg>=0?'up':'dn'}">${chg>=0?'+':''}${chg.toFixed(3)}%</span></div>
+    </div>`;
+  }).join('');
+}
+
+function filterCat(cat, el) {
+  filterCatVal = cat;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderInstrumentList();
+}
+function filterSymbols(q) { filterQuery = q.toLowerCase(); renderInstrumentList(); }
+
+// ── CHART ─────────────────────────────────────────────────────
+let tvWidget = null;
+const tvSymMap = {
+  EURUSD:'FX:EURUSD',GBPUSD:'FX:GBPUSD',USDJPY:'FX:USDJPY',USDCHF:'FX:USDCHF',
+  AUDUSD:'FX:AUDUSD',USDCAD:'FX:USDCAD',NZDUSD:'FX:NZDUSD',EURGBP:'FX:EURGBP',
+  EURJPY:'FX:EURJPY',GBPJPY:'FX:GBPJPY',AUDJPY:'FX:AUDJPY',EURCHF:'FX:EURCHF',
+  GBPAUD:'FX:GBPAUD',EURCAD:'FX:EURCAD',
+  XAUUSD:'TVC:GOLD',XAGUSD:'TVC:SILVER',WTIUSD:'TVC:USOIL',BRENTUSD:'TVC:UKOIL',XPTUSD:'TVC:PLATINUM',
+  BTCUSD:'COINBASE:BTCUSD',ETHUSD:'COINBASE:ETHUSD',BNBUSD:'BINANCE:BNBUSDT',
+  SOLUSD:'COINBASE:SOLUSD',XRPUSD:'BITSTAMP:XRPUSD',DOTUSD:'COINBASE:DOTUSD',
+  LTCUSD:'COINBASE:LTCUSD',DOGEUSD:'BINANCE:DOGEUSDT',LINKUSD:'COINBASE:LINKUSD',
+  AVAXUSD:'COINBASE:AVAXUSD',MATICUSD:'COINBASE:MATICUSD',ADAUSD:'COINBASE:ADAUSD',
+  US30:'TVC:DJI',SPX500:'TVC:SPX',NAS100:'NASDAQ:NDX',DAX40:'XETR:DAX',
+  FTSE100:'TVC:UKX',NIKKEI:'TVC:NI225',
+  AAPL:'NASDAQ:AAPL',MSFT:'NASDAQ:MSFT',AMZN:'NASDAQ:AMZN',GOOGL:'NASDAQ:GOOGL',
+  TSLA:'NASDAQ:TSLA',NVDA:'NASDAQ:NVDA',META:'NASDAQ:META',NFLX:'NASDAQ:NFLX',
+  BABA:'NYSE:BABA',JPM:'NYSE:JPM',
+};
+
+function loadChart(sym) {
+  const container = document.getElementById('tradingview_chart');
+  container.innerHTML = '';
+  container.style.height = '320px';
+  if (typeof TradingView !== 'undefined') {
+    new TradingView.widget({
+      autosize: true,
+      symbol: tvSymMap[sym] || 'FX:EURUSD',
+      interval: '60',
+      timezone: 'Etc/UTC',
+      theme: 'light',
+      style: '1',
+      locale: 'en',
+      toolbar_bg: '#f1f3f6',
+      enable_publishing: false,
+      allow_symbol_change: false,
+      container_id: 'tradingview_chart',
+      hide_top_toolbar: false,
+      save_image: false,
+    });
+  } else {
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#999;font-size:14px">Chart loading... (requires internet)</div>';
+  }
+}
+
+function selectSymbol(sym) {
+  currentSym = sym;
+  document.getElementById('chartSymbol').textContent = symNames[sym]||sym;
+  updateChartHeader();
+  loadChart(sym);
+  renderInstrumentList();
+}
+
+function updateChartHeader() {
+  const p = allPrices[currentSym];
+  if (!p) return;
+  const spread = p * 0.00005;
+  document.getElementById('chartPrice').textContent = fmt(currentSym, p);
+  document.getElementById('chartSpread').textContent = spread.toFixed(5);
+  document.getElementById('ofBuy').textContent = fmt(currentSym, p + spread);
+  document.getElementById('ofSell').textContent = fmt(currentSym, p - spread);
+}
+
+// ── PRICE STRIP ───────────────────────────────────────────────
+function renderPriceStrip() {
+  const el = document.getElementById('priceStrip');
+  if (!el) return;
+  const show = ['EURUSD','GBPUSD','XAUUSD','BTCUSD','US30','ETHUSD'];
+  el.innerHTML = show.map(s => {
+    const p = allPrices[s]||0;
+    return `<div class="ps-item" onclick="selectSymbol('${s}')"><span class="ps-sym">${s}</span><span class="ps-p">${fmt(s,p)}</span></div>`;
+  }).join('');
+}
+
+// ── ORDER ─────────────────────────────────────────────────────
+function setSide(side) {
+  currentSide = side;
+  document.getElementById('buyBtn').classList.toggle('active', side==='buy');
+  document.getElementById('sellBtn').classList.toggle('active', side==='sell');
+}
+
+async function placeOrder(side) {
+  currentSide = side;
+  const quantity = parseFloat(document.getElementById('quantity').value);
+  if (!quantity || quantity <= 0) return showMsg('Enter a valid quantity', 'error');
+  const msg = document.getElementById('tradeMsg');
+  msg.textContent = 'Placing order...';
+  try {
+    const res = await fetch('/api/trading/order', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'x-auth-token': token },
+      body: JSON.stringify({ symbol: currentSym, side, quantity })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showMsg(`✅ ${side.toUpperCase()} ${quantity} ${currentSym} @ ${fmt(currentSym, allPrices[currentSym])} — Balance: $${data.balance.toFixed(2)}`, 'success');
+      document.getElementById('balance').textContent = data.balance.toFixed(2);
+      document.getElementById('w-balance').textContent = '$' + data.balance.toFixed(2);
+      fetchPositions();
+    } else {
+      showMsg('❌ ' + data.msg, 'error');
+    }
+  } catch(e) { showMsg('❌ Connection error', 'error'); }
+}
+
+function showMsg(txt, type) {
+  const el = document.getElementById('tradeMsg');
+  el.textContent = txt;
+  el.className = 'trade-msg ' + type;
+  setTimeout(() => el.textContent = '', 4000);
+}
+
+// ── POSITIONS ─────────────────────────────────────────────────
+async function fetchPositions() {
+  try {
+    const r = await fetch('/api/account/positions', { headers:{'x-auth-token':token} });
+    openPositions = await r.json();
+    renderPositions();
+  } catch(e) {}
+}
+
+function renderPositions() {
+  const el = document.getElementById('positionsPanel');
+  if (!openPositions.length) { el.innerHTML = '<p class="empty-msg">No open positions</p>'; return; }
+  el.innerHTML = `<table class="pos-table">
+    <tr><th>Symbol</th><th>Side</th><th>Qty</th><th>Entry</th><th>Current</th><th>P&L</th></tr>
+    ${openPositions.map(p => {
+      const cur = allPrices[p.symbol] || p.avgPrice;
+      const pl = (cur - p.avgPrice) * p.quantity;
+      return `<tr>
+        <td><b>${p.symbol}</b></td>
+        <td class="up">BUY</td>
+        <td>${p.quantity}</td>
+        <td>${fmt(p.symbol, p.avgPrice)}</td>
+        <td>${fmt(p.symbol, cur)}</td>
+        <td class="${pl>=0?'up':'dn'}">${pl>=0?'+':''}$${Math.abs(pl).toFixed(2)}</td>
+      </tr>`;
+    }).join('')}
+  </table>`;
+}
+
+function updatePositionsPL() { if (openPositions.length) renderPositions(); }
+
+// ── USER ──────────────────────────────────────────────────────
+async function fetchUser() {
+  try {
+    const r = await fetch('/api/account/me', { headers:{'x-auth-token':token} });
+    currentUser = await r.json();
+    document.getElementById('userEmail').textContent = currentUser.email;
+    document.getElementById('balance').textContent = currentUser.balance.toFixed(2);
+    document.getElementById('w-balance').textContent = '$' + currentUser.balance.toFixed(2);
+    document.getElementById('w-equity').textContent = '$' + currentUser.balance.toFixed(2);
+    document.getElementById('w-margin').textContent = '$' + currentUser.balance.toFixed(2);
+  } catch(e) {}
+}
+
+async function fetchOrders() {
+  try {
+    const r = await fetch('/api/account/orders', { headers:{'x-auth-token':token} });
+    const orders = await r.json();
+    document.getElementById('ordersList').innerHTML = orders.map(o =>
+      `<li><span class="${o.side==='buy'?'up':'dn'}">${o.side.toUpperCase()}</span> ${o.quantity} ${o.symbol} @ ${fmt(o.symbol,o.price)}</li>`
+    ).join('') || '<li class="empty-msg">No orders yet</li>';
+  } catch(e) {}
+}
+
+// ── TABS ──────────────────────────────────────────────────────
+function showTab(tab, el) {
+  document.querySelectorAll('.rp-content').forEach(d=>d.style.display='none');
+  document.querySelectorAll('.rp-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).style.display='block';
+  el.classList.add('active');
+  if (tab==='history') fetchOrders();
+}
+
+// ── DEPOSIT ───────────────────────────────────────────────────
+document.getElementById('depositBtn').addEventListener('click', async () => {
+  try {
+    const r = await fetch('/api/account/deposit-address', { headers:{'x-auth-token':token} });
+    const d = await r.json();
+    document.getElementById('btcAddr').textContent = d.btc;
+    document.getElementById('usdtAddr').textContent = d.usdt;
+    document.getElementById('btcQR').src = d.btcQR;
+    document.getElementById('usdtQR').src = d.usdtQR;
+    document.getElementById('depositModal').style.display = 'flex';
+  } catch(e) { alert('Could not load deposit address.'); }
+});
+window.closeModal = () => document.getElementById('depositModal').style.display = 'none';
+window.copyText = (id) => { navigator.clipboard.writeText(document.getElementById(id).textContent); alert('Copied!'); };
+
+document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.removeItem('token'); location.href='/'; });
+
+// ── INIT ──────────────────────────────────────────────────────
+fetchUser();
+fetchPositions();
+loadChart('EURUSD');
+</script>
+<script src="https://s3.tradingview.com/tv.js"></script>
+</body>
+</html>
