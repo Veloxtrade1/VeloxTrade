@@ -279,7 +279,70 @@ tr:hover td{background:var(--bg2)}
 
 @media(max-width:1280px){.app{grid-template-columns:200px 1fr 280px}}
 @media(max-width:1024px){.app{grid-template-columns:1fr 300px};.lsb{display:none}}
-@media(max-width:768px){.app{grid-template-columns:1fr};.rp{display:none};.tn-tickers{display:none}}
+
+/* ── MOBILE OPTIMISATION ── */
+@media(max-width:768px){
+  .app{grid-template-columns:1fr;grid-template-rows:48px 1fr auto;overflow:hidden}
+  .topnav{padding:0 8px;gap:6px}
+  .tn-logo-text{display:none}
+  .tn-tickers{display:none}
+  .tn-right{gap:6px}
+  .bal-box{padding:3px 8px}
+  .bal-lbl{display:none}
+  .bal-val{font-size:12px}
+  .tn-dep{display:none}
+  .tn-logout{padding:4px 8px;font-size:10px}
+  .lsb{display:none}
+  .rp{display:none}
+  .center{grid-column:1/-1}
+  /* Chart header compact */
+  .chart-header{padding:0 8px;height:36px;gap:8px;flex-wrap:nowrap;overflow:hidden}
+  .ch-sym{font-size:13px}
+  .ch-price{font-size:16px}
+  .ch-chg{font-size:10px;padding:1px 6px}
+  .ch-stats{display:none}
+  .tfs{gap:1px}
+  .tf{padding:2px 6px;font-size:9px}
+  /* Chart box fills screen */
+  #chartBox{min-height:240px}
+  /* Bottom panel */
+  .bp-body{height:120px}
+  th,td{padding:5px 7px;font-size:10px}
+  /* Mobile bottom nav */
+  .mob-nav{display:flex!important}
+}
+
+/* MOBILE BOTTOM NAV BAR */
+.mob-nav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--bg1);border-top:1px solid var(--border);
+  z-index:500;height:56px;
+  grid-template-columns:repeat(5,1fr);
+}
+.mn-item{display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:3px;color:var(--t3);font-size:9px;font-weight:600;letter-spacing:.02em;padding:4px;border:none;background:none;transition:.15s;width:100%}
+.mn-item.act,.mn-item:hover{color:var(--yellow)}
+.mn-item svg{width:18px;height:18px;fill:currentColor}
+
+/* MOBILE SLIDE PANELS */
+.mob-panel{
+  position:fixed;inset:0;top:48px;bottom:56px;z-index:400;
+  background:var(--bg1);overflow-y:auto;
+  transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+}
+.mob-panel.open{transform:translateX(0)}
+
+/* Mobile trade panel */
+.mob-trade{padding:12px}
+.mob-syms{padding:10px 12px;border-bottom:1px solid var(--border)}
+
+/* Adjust chart area on mobile to account for bottom nav */
+@media(max-width:768px){
+  .center{padding-bottom:56px}
+  .bp{position:fixed;bottom:56px;left:0;right:0;z-index:300;background:var(--bg1);border-top:1px solid var(--border)}
+  .bp-body{height:110px}
+  #chartBox{height:calc(100vh - 48px - 36px - 150px - 56px)!important;min-height:180px}
+}
 </style>
 </head>
 <body>
@@ -1188,5 +1251,287 @@ document.addEventListener('DOMContentLoaded',()=>{
   setTimeout(initSocket,300);
 });
 </script>
+
+<!-- ── MOBILE BOTTOM NAV ── -->
+<nav class="mob-nav" id="mobNav">
+  <button class="mn-item act" id="mn-chart" onclick="mobShow('chart')">
+    <svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zm16 16V5H5v14h14zM7 15l3-4 3 3 3-5"/></svg>
+    Chart
+  </button>
+  <button class="mn-item" id="mn-markets" onclick="mobShow('markets')">
+    <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6h-6z"/></svg>
+    Markets
+  </button>
+  <button class="mn-item" id="mn-trade" onclick="mobShow('trade')">
+    <svg viewBox="0 0 24 24" style="color:var(--yellow)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+    Trade
+  </button>
+  <button class="mn-item" id="mn-positions" onclick="mobShow('positions')">
+    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+    Positions
+  </button>
+  <button class="mn-item" id="mn-account" onclick="mobShow('account')">
+    <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+    Account
+  </button>
+</nav>
+
+<!-- MOBILE MARKETS PANEL -->
+<div class="mob-panel" id="mobMarkets">
+  <div style="padding:10px 12px;border-bottom:1px solid var(--border)">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <input class="lsb-inp" type="text" placeholder="Search..." oninput="filterSyms(this.value)">
+    </div>
+  </div>
+  <div style="display:flex;padding:6px 8px;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--border)">
+    <button class="cat on" onclick="setCat('all',this)">All</button>
+    <button class="cat" onclick="setCat('forex',this)">FX</button>
+    <button class="cat" onclick="setCat('crypto',this)">Crypto</button>
+    <button class="cat" onclick="setCat('metals',this)">Metals</button>
+    <button class="cat" onclick="setCat('indices',this)">Index</button>
+    <button class="cat" onclick="setCat('stocks',this)">Stocks</button>
+  </div>
+  <div class="sym-list" id="mobSymList"></div>
+</div>
+
+<!-- MOBILE TRADE PANEL -->
+<div class="mob-panel" id="mobTrade">
+  <div class="mob-trade">
+    <div style="font-size:14px;font-weight:700;margin-bottom:12px" id="mobOfPair">EUR/USD · Forex</div>
+    <!-- Price display -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
+      <div class="pd pd-s"><div class="pd-label">SELL</div><div class="pd-price" id="mobSell">—</div></div>
+      <div class="pd pd-b"><div class="pd-label">BUY</div><div class="pd-price" id="mobBuy">—</div></div>
+    </div>
+    <!-- Buy/Sell toggle -->
+    <div class="bs-toggle" style="margin-bottom:12px">
+      <div class="bs-sell on" id="mbs-sell" onclick="mobSetSide('sell')">SELL</div>
+      <div class="bs-buy" id="mbs-buy" onclick="mobSetSide('buy')">BUY</div>
+    </div>
+    <!-- Volume -->
+    <div class="of-field">
+      <div class="of-lbl">Volume (Lots)</div>
+      <input class="of-inp" type="number" id="mobVol" value="0.10" step="0.01" min="0.01" oninput="mobCalcMargin()">
+    </div>
+    <!-- SL/TP -->
+    <div class="sl-tp-box">
+      <div class="sl-tp-title">
+        Stop Loss / Take Profit
+        <div class="sl-tp-toggle" id="mobSltpToggle" onclick="mobToggleSLTP()"></div>
+      </div>
+      <div class="sl-tp-fields hidden" id="mobSltpFields">
+        <div><div class="of-lbl">Stop Loss</div><input class="of-inp" type="number" id="mobSL" placeholder="Price level"></div>
+        <div><div class="of-lbl">Take Profit</div><input class="of-inp" type="number" id="mobTP" placeholder="Price level"></div>
+      </div>
+    </div>
+    <!-- Margin info -->
+    <div class="margin-info" style="margin-bottom:12px">
+      <div class="mi-row"><span class="mi-lbl">Req. Margin</span><span class="mi-val" id="mobReqMargin">—</span></div>
+      <div class="mi-row"><span class="mi-lbl">Pip Value</span><span class="mi-val" id="mobPipVal">—</span></div>
+      <div class="mi-row"><span class="mi-lbl">Leverage</span><span class="mi-val yellow">1:500</span></div>
+    </div>
+    <!-- Execute -->
+    <div class="exec-btns">
+      <button class="sell-btn" onclick="mobExec('sell')">▼ SELL</button>
+      <button class="buy-btn" onclick="mobExec('buy')">▲ BUY</button>
+    </div>
+    <div class="risk-note" style="margin-top:10px">CFDs involve significant risk. Never invest more than you can afford to lose.</div>
+  </div>
+</div>
+
+<!-- MOBILE POSITIONS PANEL -->
+<div class="mob-panel" id="mobPositions">
+  <div style="padding:10px 12px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700">Open Positions <span id="mobPosCnt" style="background:var(--yellow);color:#000;padding:1px 7px;border-radius:10px;font-size:10px">0</span></div>
+  <div id="mobPosList" style="padding:10px 12px"></div>
+</div>
+
+<!-- MOBILE ACCOUNT PANEL -->
+<div class="mob-panel" id="mobAccount">
+  <div style="padding:12px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div class="acct-card"><div class="ac-lbl">Balance</div><div class="ac-val g" id="mobBal">$0.00</div></div>
+      <div class="acct-card"><div class="ac-lbl">Open P&L</div><div class="ac-val" id="mobPL">$0.00</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <div class="acct-dep" onclick="openDep();mobShow('chart')">+ Deposit</div>
+      <div class="acct-wd" onclick="openWD();mobShow('chart')">Withdraw</div>
+    </div>
+    <div class="acct-info">
+      <div class="ai-row"><span class="ai-l">Email</span><span class="ai-v" id="mobEmail">—</span></div>
+      <div class="ai-row"><span class="ai-l">Account #</span><span class="ai-v" id="mobAccNum">VLX-000000</span></div>
+      <div class="ai-row"><span class="ai-l">Leverage</span><span class="ai-v" style="color:var(--yellow)">1:500</span></div>
+      <div class="ai-row"><span class="ai-l">KYC</span><span class="ai-v" style="color:var(--yellow)">Pending ⚠</span></div>
+    </div>
+    <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+      <button onclick="location.href='pages/kyc.html'" class="kyc-btn">Complete KYC →</button>
+      <button onclick="location.href='pages/portfolio.html'" style="width:100%;padding:9px;border-radius:4px;background:var(--bg2);border:1px solid var(--border);color:var(--t1);font-size:12px;font-weight:600;cursor:pointer">My Portfolio →</button>
+      <button onclick="location.href='pages/learn.html'" style="width:100%;padding:9px;border-radius:4px;background:var(--bg2);border:1px solid var(--border);color:var(--t1);font-size:12px;font-weight:600;cursor:pointer">Education →</button>
+    </div>
+    <button onclick="doLogout()" style="width:100%;margin-top:12px;padding:9px;border-radius:4px;background:var(--redbg);border:1px solid var(--redbdr);color:var(--red);font-size:12px;font-weight:600;cursor:pointer">Logout</button>
+  </div>
+</div>
+
+<script>
+// ── MOBILE NAVIGATION ─────────────────────────────────
+let mobSltpOn = false;
+let mobSide = 'sell';
+let currentMobPanel = 'chart';
+
+function mobShow(panel) {
+  currentMobPanel = panel;
+  // Update nav active state
+  document.querySelectorAll('.mn-item').forEach(b => b.classList.remove('act'));
+  const navBtn = document.getElementById('mn-'+panel);
+  if (navBtn) navBtn.classList.add('act');
+
+  // Hide all mob panels
+  document.querySelectorAll('.mob-panel').forEach(p => p.classList.remove('open'));
+
+  if (panel === 'chart') {
+    // Show chart — nothing extra needed
+  } else if (panel === 'markets') {
+    document.getElementById('mobMarkets').classList.add('open');
+    renderMobSymList();
+  } else if (panel === 'trade') {
+    document.getElementById('mobTrade').classList.add('open');
+    updateMobForm();
+  } else if (panel === 'positions') {
+    document.getElementById('mobPositions').classList.add('open');
+    renderMobPositions();
+  } else if (panel === 'account') {
+    document.getElementById('mobAccount').classList.add('open');
+    updateMobAccount();
+  }
+}
+
+function renderMobSymList() {
+  const el = document.getElementById('mobSymList');
+  if (!el) return;
+  const list = SYMS.filter(s =>
+    (catFilter === 'all' || s.cat === catFilter) &&
+    (!symFilter || s.s.toLowerCase().includes(symFilter) || s.n.toLowerCase().includes(symFilter))
+  );
+  el.innerHTML = list.map(({s,n,ic,col}) => {
+    const p = prices[s]||0;
+    const chg = dayChange[s]!=null ? dayChange[s] : (prevPrices[s]?(p-prevPrices[s])/prevPrices[s]*100:0);
+    const cls = chg>=0?'g':'r';
+    return `<div class="si${s===currentSym?' act':''}" onclick="mobSelectSym('${s}')">
+      <div class="si-left"><div class="si-ic" style="background:${col}18;color:${col}">${ic}</div>
+      <div><div class="si-sym">${s}</div><div class="si-name">${n}</div></div></div>
+      <div class="si-r"><div class="si-p">${fmt(s,p)}</div><div class="si-c ${cls}">${chg>=0?'+':''}${chg.toFixed(3)}%</div></div>
+    </div>`;
+  }).join('');
+}
+
+function mobSelectSym(s) {
+  selectSym(s);
+  mobShow('chart');
+}
+
+function renderMobPositions() {
+  const el = document.getElementById('mobPosList');
+  const cnt = document.getElementById('mobPosCnt');
+  if (cnt) cnt.textContent = positions.length;
+  if (!el) return;
+  if (!positions.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--t3);padding:32px;font-size:12px">No open positions</div>';
+    return;
+  }
+  el.innerHTML = positions.map(pos => {
+    const cur = prices[pos.symbol]||pos.avgPrice;
+    const pl = (cur-pos.avgPrice)*(pos.quantity||1)*(pos.side==='sell'?-1:1);
+    return `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:13px;font-weight:700">${pos.symbol}</span>
+        <span style="color:${pl>=0?'var(--green)':'var(--red)'};font-family:var(--mono);font-weight:700">${pl>=0?'+':''}$${Math.abs(pl).toFixed(2)}</span>
+      </div>
+      <div style="display:flex;gap:12px;font-size:10px;color:var(--t3);font-family:var(--mono);margin-bottom:8px">
+        <span>Entry: ${fmt(pos.symbol,pos.avgPrice)}</span>
+        <span>Now: ${fmt(pos.symbol,cur)}</span>
+        <span>Qty: ${pos.quantity||1}</span>
+      </div>
+      ${pos.sl||pos.tp?`<div style="display:flex;gap:8px;font-size:9px;font-family:var(--mono);margin-bottom:8px">${pos.sl?`<span style="background:var(--redbg);color:var(--red);padding:2px 7px;border-radius:3px">SL:${fmt(pos.symbol,pos.sl)}</span>`:''}${pos.tp?`<span style="background:var(--greenbg);color:var(--green);padding:2px 7px;border-radius:3px">TP:${fmt(pos.symbol,pos.tp)}</span>`:''}</div>`:''}
+      <button onclick="closePos('${pos.symbol}',${pos.quantity||1})" class="close-btn" style="width:100%;padding:6px">Close Position</button>
+    </div>`;
+  }).join('');
+}
+
+function updateMobAccount() {
+  const el = id => document.getElementById(id);
+  if(el('mobBal')) el('mobBal').textContent='$'+(user.balance||0).toFixed(2);
+  if(el('mobEmail')) el('mobEmail').textContent=user.email||'—';
+  if(el('mobAccNum')) el('mobAccNum').textContent='VLX-'+(user.id||'000000').slice(-6).toUpperCase();
+  const tpl = positions.reduce((s,p)=>s+(prices[p.symbol]-p.avgPrice)*(p.quantity||1),0);
+  if(el('mobPL')) { el('mobPL').textContent=(tpl>=0?'+':'')+'$'+Math.abs(tpl).toFixed(2); el('mobPL').className='ac-val '+(tpl>=0?'g':'r'); }
+}
+
+function mobSetSide(side) {
+  mobSide = side;
+  document.getElementById('mbs-buy').className='bs-buy'+(side==='buy'?' on':'');
+  document.getElementById('mbs-sell').className='bs-sell'+(side==='sell'?' on':'');
+}
+
+function mobToggleSLTP() {
+  mobSltpOn = !mobSltpOn;
+  document.getElementById('mobSltpToggle').classList.toggle('on', mobSltpOn);
+  document.getElementById('mobSltpFields').classList.toggle('hidden', !mobSltpOn);
+}
+
+function updateMobForm() {
+  const p = prices[currentSym]||0;
+  const sp = getSpread(currentSym);
+  const sym = SYMS.find(x=>x.s===currentSym)||{n:currentSym,cat:''};
+  const el = id => document.getElementById(id);
+  if(el('mobOfPair')) el('mobOfPair').textContent=`${currentSym} · ${sym.cat}`;
+  if(el('mobBuy')) el('mobBuy').textContent=fmt(currentSym,p+sp/2);
+  if(el('mobSell')) el('mobSell').textContent=fmt(currentSym,p-sp/2);
+  mobCalcMargin();
+}
+
+function mobCalcMargin() {
+  const lots=parseFloat(document.getElementById('mobVol')?.value)||.1;
+  const p=prices[currentSym]||1;
+  const el=id=>document.getElementById(id);
+  if(el('mobReqMargin')) el('mobReqMargin').textContent='$'+(p*lots*100000/500).toFixed(2);
+  if(el('mobPipVal')) el('mobPipVal').textContent='$'+(lots*10).toFixed(2);
+}
+
+async function mobExec(side) {
+  const lots = parseFloat(document.getElementById('mobVol').value)||.1;
+  const sl = mobSltpOn ? parseFloat(document.getElementById('mobSL').value)||null : null;
+  const tp = mobSltpOn ? parseFloat(document.getElementById('mobTP').value)||null : null;
+  try {
+    const r = await fetch('/api/trading/order',{method:'POST',headers:{'Content-Type':'application/json','x-auth-token':token},body:JSON.stringify({symbol:currentSym,side,quantity:lots,sl,tp})});
+    const d = await r.json();
+    if (r.ok) {
+      user.balance = d.balance;
+      document.getElementById('topBal').textContent = '$'+d.balance.toFixed(2);
+      toast(side==='buy'?'▲':'▼',`${side.toUpperCase()} ${lots} ${currentSym}`,`@ ${fmt(currentSym,d.price)}`,side==='buy'?'g':'r');
+      mobShow('positions');
+      loadPositions();
+    } else toast('❌','Order Failed',d.msg,'r');
+  } catch { toast('❌','Error','Check connection','r'); }
+}
+
+// Refresh mobile panels when prices update
+const _origRenderUI = renderUI;
+function renderUI() {
+  _origRenderUI();
+  if (currentMobPanel==='markets') renderMobSymList();
+  if (currentMobPanel==='positions') renderMobPositions();
+  if (currentMobPanel==='trade') updateMobForm();
+  if (currentMobPanel==='account') updateMobAccount();
+}
+
+// Detect mobile on load
+function checkMobile() {
+  const isMob = window.innerWidth <= 768;
+  document.getElementById('mobNav').style.display = isMob ? 'grid' : 'none';
+}
+window.addEventListener('resize', checkMobile);
+checkMobile();
+</script>
+
 </body>
 </html>
