@@ -338,4 +338,3 @@ tryConnectDB().then(() => {
   // Start anyway even if tryConnectDB throws
   server.listen(PORT, () => console.log(`Velox running on port ${PORT} (degraded mode)`));
 });
- 
