@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Markets — Trade 50+ Instruments | Velox</title>
+<meta name="description" content="Trade Forex, Gold, Oil, Crypto, Indices and US Stocks with live prices, tight spreads and up to 1:2000 leverage.">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#080C14;--bg2:#0D1220;--bg3:#121829;--b1:#1E2A42;--b2:#243354;--t1:#F0F4FF;--t2:#A8B4CC;--t3:#637089;--green:#00E5B0;--gbg:rgba(0,229,176,.1);--gbr:rgba(0,229,176,.25);--red:#FF3D5A;--rbg:rgba(255,61,90,.1);--blue:#4B8BF5;--bbg:rgba(75,139,245,.12);--bbr:rgba(75,139,245,.3);--gold:#FFB547;--goldbg:rgba(255,181,71,.12);--font:'Space Grotesk',sans-serif;--mono:'JetBrains Mono',monospace}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100vh}
+a{text-decoration:none;color:inherit}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--b1)}
+.nav{background:var(--bg2);border-bottom:1px solid var(--b1);padding:0 24px;height:60px;display:flex;align-items:center;gap:24px;position:sticky;top:0;z-index:100}
+.nav-logo{font-size:20px;font-weight:800;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.logo-box{width:30px;height:30px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-box svg{width:16px;height:16px;fill:#fff}
+.logo-text span{color:var(--blue)}
+.nav-links{display:flex;gap:2px;flex:1}
+.nl{padding:7px 12px;border-radius:8px;font-size:13px;font-weight:500;color:var(--t2);transition:.2s;text-decoration:none;display:inline-block}
+.nl:hover,.nl.act{background:var(--bg3);color:var(--t1)}
+.nav-right{display:flex;gap:8px;margin-left:auto}
+.btn{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:var(--font);transition:.2s}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:#3a7ae8}
+.btn-green{background:var(--green);color:#000}.btn-green:hover{background:#00c49a}
+.btn-ghost{background:none;border:1.5px solid var(--b1);color:var(--t2)}.btn-ghost:hover{border-color:var(--blue);color:var(--blue)}
+.container{max-width:1280px;margin:0 auto;padding:0 24px}
+
+/* HERO */
+.mkt-hero{padding:56px 0 40px;background:linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%);border-bottom:1px solid var(--b1)}
+.mh-title{font-size:clamp(28px,4vw,44px);font-weight:900;letter-spacing:-1.5px;margin-bottom:10px}
+.mh-sub{font-size:15px;color:var(--t2);margin-bottom:28px}
+.mh-stats{display:flex;gap:24px;flex-wrap:wrap}
+.mh-stat{background:var(--bg3);border:1px solid var(--b1);border-radius:10px;padding:12px 20px;text-align:center;min-width:100px}
+.mh-stat h3{font-size:20px;font-weight:800;margin-bottom:2px}
+.mh-stat p{font-size:10px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+
+/* FILTERS */
+.mkt-filters{padding:24px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mf-tab{padding:8px 18px;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--b1);background:none;color:var(--t3);transition:.2s;font-family:var(--font)}
+.mf-tab.on{background:var(--bbg);border-color:var(--blue);color:var(--blue)}
+.mf-search{background:var(--bg2);border:1px solid var(--b1);border-radius:100px;padding:8px 16px;font-size:13px;color:var(--t1);font-family:var(--font);outline:none;margin-left:auto;width:220px}
+.mf-search:focus{border-color:var(--blue)}
+.mf-search::placeholder{color:var(--t3)}
+
+/* MARKET TABLE */
+.mkt-table-wrap{background:var(--bg2);border:1px solid var(--b1);border-radius:16px;overflow:hidden;margin-bottom:32px}
+.mt-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--b1)}
+.mt-title{font-size:14px;font-weight:700}
+.mt-count{font-size:12px;color:var(--t3)}
+table{width:100%;border-collapse:collapse}
+th{padding:10px 16px;text-align:left;font-size:9px;font-weight:700;color:var(--t3);letter-spacing:.07em;text-transform:uppercase;background:var(--bg3);border-bottom:1px solid var(--b1)}
+th:nth-child(3),th:nth-child(4),th:nth-child(5),th:nth-child(6){text-align:right}
+td{padding:13px 16px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.025)}
+td.r{text-align:right}
+td.mono{font-family:var(--mono)}
+tr:hover td{background:rgba(255,255,255,.02);cursor:pointer}
+tr:last-child td{border:none}
+.sym-cell{display:flex;align-items:center;gap:10px}
+.sym-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.sym-name{font-size:13px;font-weight:700;line-height:1.2}
+.sym-full{font-size:10px;color:var(--t3);margin-top:1px}
+.up{color:var(--green)}.dn{color:var(--red)}
+.chg-pill{display:inline-block;padding:3px 9px;border-radius:4px;font-size:10px;font-weight:700;font-family:var(--mono)}
+.cpup{background:var(--gbg);color:var(--green)}.cpdn{background:var(--rbg);color:var(--red)}
+.spread-tag{background:var(--gbg);color:var(--green);border:1px solid var(--gbr);padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:var(--mono)}
+.lev-tag{color:var(--gold);font-family:var(--mono);font-size:12px;font-weight:700}
+.trade-btn{padding:6px 16px;border-radius:100px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--bbr);background:var(--bbg);color:var(--blue);transition:.2s;font-family:var(--font);white-space:nowrap}
+.trade-btn:hover{background:var(--blue);color:#fff}
+.mini-chart{display:flex;align-items:flex-end;gap:1.5px;height:28px}
+.mc-b{width:3px;border-radius:1px;opacity:.8}
+
+/* INFO CARDS */
+.info-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+.info-card{background:var(--bg2);border:1px solid var(--b1);border-radius:14px;padding:20px;text-align:center}
+.ic-icon{font-size:28px;margin-bottom:10px}
+.ic-title{font-size:14px;font-weight:700;margin-bottom:4px}
+.ic-val{font-size:22px;font-weight:800;margin-bottom:4px}
+.ic-sub{font-size:11px;color:var(--t3)}
+
+/* CTA */
+.mkt-cta{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--b1);border-radius:20px;padding:40px;text-align:center;margin-bottom:32px}
+.mkt-cta h2{font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:10px}
+.mkt-cta p{font-size:15px;color:var(--t2);margin-bottom:24px}
+.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
+@media(max-width:1024px){.info-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:768px){
+  .nav-links{display:none}
+  th:nth-child(5),td:nth-child(5),th:nth-child(6),td:nth-child(6){display:none}
+  .mh-stats{gap:10px}
+  .mf-search{width:100%;margin-left:0}
+}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="../index.html" class="nav-logo">
+    <div class="logo-box"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+    <span class="logo-text">Vel<span>ox</span></span>
+  </a>
+  <div class="nav-links">
+    <a href="../index.html" class="nl">Home</a>
+    <a href="markets.html" class="nl act">Markets</a>
+    <a href="../dashboard.html" class="nl">Trade</a>
+    <a href="learn.html" class="nl">Education</a>
+    <a href="about.html" class="nl">About</a>
+  </div>
+  <div class="nav-right">
+    <a href="../index.html" onclick="event.preventDefault();window.opener?window.close():history.back()" class="btn btn-ghost">Log In</a>
+    <a href="../dashboard.html" class="btn btn-green">Open Account</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="mkt-hero">
+  <div class="container">
+    <div style="font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px">Live Markets</div>
+    <h1 class="mh-title">Trade the World's Markets</h1>
+    <p class="mh-sub">50+ instruments across Forex, Metals, Energy, Crypto, Indices & Stocks — all from one account</p>
+    <div class="mh-stats">
+      <div class="mh-stat"><h3 style="color:var(--green)">0.0</h3><p>Pips from</p></div>
+      <div class="mh-stat"><h3>1:2000</h3><p>Max Leverage</p></div>
+      <div class="mh-stat"><h3 style="color:var(--blue)">50+</h3><p>Instruments</p></div>
+      <div class="mh-stat"><h3>&lt;25ms</h3><p>Execution</p></div>
+      <div class="mh-stat"><h3>24/5</h3><p>Markets open</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- INSTRUMENTS INFO -->
+<div style="padding:32px 0">
+  <div class="container">
+    <div class="info-grid">
+      <div class="info-card"><div class="ic-icon">💱</div><div class="ic-title">Forex</div><div class="ic-val" style="color:var(--blue)">10+</div><div class="ic-sub">Major & minor pairs · 1:2000 leverage</div></div>
+      <div class="info-card"><div class="ic-icon">🥇</div><div class="ic-title">Metals & Energy</div><div class="ic-val" style="color:var(--gold)">6</div><div class="ic-sub">Gold, Silver, Oil, Gas · 1:500 lev</div></div>
+      <div class="info-card"><div class="ic-icon">₿</div><div class="ic-title">Crypto</div><div class="ic-val" style="color:var(--orange,#FF6B35)">20+</div><div class="ic-sub">BTC, ETH, SOL, BNB & more · 1:50</div></div>
+      <div class="info-card"><div class="ic-icon">📈</div><div class="ic-title">Indices & Stocks</div><div class="ic-val" style="color:var(--green)">29</div><div class="ic-sub">Global indices + US stocks · 1:200</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MARKET TABLE -->
+<div style="padding:0 0 48px">
+  <div class="container">
+    <div class="mkt-filters">
+      <button class="mf-tab on" onclick="setTab('all',this)">All</button>
+      <button class="mf-tab" onclick="setTab('forex',this)">💱 Forex</button>
+      <button class="mf-tab" onclick="setTab('metals',this)">🥇 Metals</button>
+      <button class="mf-tab" onclick="setTab('energy',this)">🛢️ Energy</button>
+      <button class="mf-tab" onclick="setTab('crypto',this)">₿ Crypto</button>
+      <button class="mf-tab" onclick="setTab('indices',this)">📈 Indices</button>
+      <button class="mf-tab" onclick="setTab('stocks',this)">🍎 Stocks</button>
+      <input class="mf-search" type="text" placeholder="Search instruments..." oninput="searchInst(this.value)">
+    </div>
+
+    <div class="mkt-table-wrap">
+      <div class="mt-header">
+        <span class="mt-title" id="tableTitle">All Instruments</span>
+        <span class="mt-count" id="tableCount">50 instruments</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Instrument</th>
+            <th>Category</th>
+            <th style="text-align:right">Price</th>
+            <th style="text-align:right">Change</th>
+            <th style="text-align:right">Spread</th>
+            <th style="text-align:right">Leverage</th>
+            <th style="text-align:right">7d Chart</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="mktBody"></tbody>
+      </table>
+    </div>
+
+    <!-- CTA -->
+    <div class="mkt-cta">
+      <h2>Ready to start trading?</h2>
+      <p>Open a free account and trade any of these instruments with a $10,000 demo balance — no deposit required.</p>
+      <div class="cta-btns">
+        <a href="../dashboard.html" class="btn btn-green" style="font-size:14px;padding:13px 28px">Open Free Account →</a>
+        <a href="../dashboard.html" class="btn btn-ghost" style="font-size:14px;padding:13px 28px">Try Demo Trading</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Full instruments list
+const ALL = [
+  // FOREX
+  {s:'EURUSD',n:'Euro / US Dollar',cat:'forex',ic:'💱',col:'rgba(75,139,245,.15)',icol:'#4B8BF5',spread:'0.3',lev:'1:2000',p:1.0843,desc:'Most traded pair globally'},
+  {s:'GBPUSD',n:'British Pound / Dollar',cat:'forex',ic:'💱',col:'rgba(75,139,245,.15)',icol:'#4B8BF5',spread:'0.5',lev:'1:2000',p:1.2678},
+  {s:'USDJPY',n:'Dollar / Japanese Yen',cat:'forex',ic:'💱',col:'rgba(75,139,245,.15)',icol:'#4B8BF5',spread:'0.4',lev:'1:2000',p:149.23},
+  {s:'USDCHF',n:'Dollar / Swiss Franc',cat:'forex',ic:'💱',col:'rgba(75,139,245,.15)',icol:'#4B8BF5',spread:'0.6',lev:'1:2000',p:0.9012},
+  {s:'AUDUSD',n:'Australian Dollar / USD',cat:'forex',ic:'💱',col:'rgba(75,139,245,.15)',icol:'#4B8BF5',spread:'0.5',lev:'1:2000',p:0.6534},
+  {s:'USDCAD',n:'Dollar / Canadian Dollar',cat:'forex',ic:'💱',col:'rgba(75,139,245,.15)',icol:'#4B8BF5',spread:'0.7',lev:'1:2000',p:1.3642},
+  {s:'NZDUSD',n:'New Zealand Dollar / USD',cat:'forex',ic:'💱',col:'rgba(75,139,245,.15)',icol:'#4B8BF5',spread:'0.6',lev:'1:2000',p:0.5923},
+  {s:'EURGBP',n:'Euro / British Pound',cat:'forex',ic:'💱',col:'rgba(75,139,245,.15)',icol:'#4B8BF5',spread:'0.8',lev:'1:1000',p:0.8562},
+  {s:'EURJPY',n:'Euro / Japanese Yen',cat:'forex',ic:'💱',col:'rgba(75,139,245,.15)',icol:'#4B8BF5',spread:'0.9',lev:'1:1000',p:161.82},
+  {s:'GBPJPY',n:'GBP / Japanese Yen',cat:'forex',ic:'💱',col:'rgba(75,139,245,.15)',icol:'#4B8BF5',spread:'1.2',lev:'1:1000',p:189.40},
+  // METALS
+  {s:'XAUUSD',n:'Gold Spot',cat:'metals',ic:'🥇',col:'rgba(255,181,71,.15)',icol:'#FFB547',spread:'0.40',lev:'1:500',p:2314.5,desc:'Safe haven, most popular CFD'},
+  {s:'XAGUSD',n:'Silver Spot',cat:'metals',ic:'⚪',col:'rgba(155,168,180,.15)',icol:'#9BA8B4',spread:'0.6',lev:'1:200',p:27.34},
+  {s:'XPTUSD',n:'Platinum Spot',cat:'metals',ic:'⚫',col:'rgba(180,180,180,.15)',icol:'#B4B4B4',spread:'1.5',lev:'1:100',p:982.0},
+  // ENERGY
+  {s:'WTIUSD',n:'WTI Crude Oil',cat:'energy',ic:'🛢️',col:'rgba(139,92,246,.15)',icol:'#8B5CF6',spread:'0.03',lev:'1:200',p:78.42},
+  {s:'BRENTUSD',n:'Brent Crude Oil',cat:'energy',ic:'🛢️',col:'rgba(139,92,246,.15)',icol:'#8B5CF6',spread:'0.05',lev:'1:200',p:82.15},
+  {s:'NGAS',n:'Natural Gas',cat:'energy',ic:'🔥',col:'rgba(245,158,11,.15)',icol:'#F59E0B',spread:'0.05',lev:'1:100',p:2.84},
+  // CRYPTO
+  {s:'BTCUSD',n:'Bitcoin',cat:'crypto',ic:'₿',col:'rgba(247,147,26,.15)',icol:'#F7931A',spread:'22',lev:'1:50',p:67842,desc:'Digital gold, #1 crypto'},
+  {s:'ETHUSD',n:'Ethereum',cat:'crypto',ic:'◆',col:'rgba(98,126,234,.15)',icol:'#627EEA',spread:'2.0',lev:'1:50',p:3428.1},
+  {s:'BNBUSD',n:'BNB',cat:'crypto',ic:'◈',col:'rgba(243,186,47,.15)',icol:'#F3BA2F',spread:'1.0',lev:'1:20',p:432.1},
+  {s:'SOLUSD',n:'Solana',cat:'crypto',ic:'◉',col:'rgba(153,69,255,.15)',icol:'#9945FF',spread:'0.5',lev:'1:20',p:142.3},
+  {s:'XRPUSD',n:'XRP / Ripple',cat:'crypto',ic:'◎',col:'rgba(52,106,169,.15)',icol:'#346AA9',spread:'0.001',lev:'1:20',p:0.5234},
+  {s:'ADAUSD',n:'Cardano',cat:'crypto',ic:'◐',col:'rgba(0,51,173,.15)',icol:'#0033AD',spread:'0.002',lev:'1:20',p:0.4521},
+  {s:'LTCUSD',n:'Litecoin',cat:'crypto',ic:'Ł',col:'rgba(191,187,187,.15)',icol:'#BFBBBB',spread:'0.1',lev:'1:20',p:84.2},
+  {s:'DOGEUSD',n:'Dogecoin',cat:'crypto',ic:'Ð',col:'rgba(194,166,51,.15)',icol:'#C2A633',spread:'0.0005',lev:'1:20',p:0.1523},
+  {s:'AVAXUSD',n:'Avalanche',cat:'crypto',ic:'▲',col:'rgba(232,65,66,.15)',icol:'#E84142',spread:'0.3',lev:'1:20',p:34.5},
+  {s:'MATICUSD',n:'Polygon / MATIC',cat:'crypto',ic:'⬡',col:'rgba(130,71,229,.15)',icol:'#8247E5',spread:'0.005',lev:'1:20',p:0.88},
+  {s:'LINKUSD',n:'Chainlink',cat:'crypto',ic:'⬡',col:'rgba(55,91,210,.15)',icol:'#375BD2',spread:'0.05',lev:'1:20',p:13.4},
+  {s:'DOTUSD',n:'Polkadot',cat:'crypto',ic:'●',col:'rgba(230,0,122,.15)',icol:'#E6007A',spread:'0.05',lev:'1:20',p:7.8},
+  {s:'UNIUSD',n:'Uniswap',cat:'crypto',ic:'🦄',col:'rgba(255,0,122,.15)',icol:'#FF007A',spread:'0.05',lev:'1:20',p:9.2},
+  {s:'AAVEUSD',n:'Aave',cat:'crypto',ic:'👻',col:'rgba(182,80,158,.15)',icol:'#B6509E',spread:'0.5',lev:'1:10',p:98.4},
+  // INDICES
+  {s:'US30',n:'Dow Jones Industrial',cat:'indices',ic:'📈',col:'rgba(0,229,176,.15)',icol:'#00E5B0',spread:'2.0',lev:'1:200',p:38420},
+  {s:'SPX500',n:'S&P 500',cat:'indices',ic:'📊',col:'rgba(0,229,176,.15)',icol:'#00E5B0',spread:'0.4',lev:'1:200',p:5124},
+  {s:'NAS100',n:'Nasdaq 100',cat:'indices',ic:'💻',col:'rgba(0,229,176,.15)',icol:'#00E5B0',spread:'1.0',lev:'1:200',p:17834},
+  {s:'DAX40',n:'Germany DAX 40',cat:'indices',ic:'🇩🇪',col:'rgba(0,229,176,.15)',icol:'#00E5B0',spread:'1.0',lev:'1:100',p:18234},
+  {s:'FTSE100',n:'UK FTSE 100',cat:'indices',ic:'🇬🇧',col:'rgba(0,229,176,.15)',icol:'#00E5B0',spread:'1.0',lev:'1:100',p:7834},
+  {s:'NIKKEI',n:'Japan Nikkei 225',cat:'indices',ic:'🇯🇵',col:'rgba(0,229,176,.15)',icol:'#00E5B0',spread:'8.0',lev:'1:100',p:38920},
+  {s:'ASX200',n:'Australia ASX 200',cat:'indices',ic:'🇦🇺',col:'rgba(0,229,176,.15)',icol:'#00E5B0',spread:'3.0',lev:'1:100',p:7642},
+  {s:'CAC40',n:'France CAC 40',cat:'indices',ic:'🇫🇷',col:'rgba(0,229,176,.15)',icol:'#00E5B0',spread:'1.5',lev:'1:100',p:8012},
+  {s:'STOXX50',n:'Euro Stoxx 50',cat:'indices',ic:'🇪🇺',col:'rgba(0,229,176,.15)',icol:'#00E5B0',spread:'2.0',lev:'1:100',p:5234},
+  // STOCKS
+  {s:'AAPL',n:'Apple Inc.',cat:'stocks',ic:'🍎',col:'rgba(155,168,180,.15)',icol:'#9BA8B4',spread:'0.13',lev:'1:20',p:192.62},
+  {s:'MSFT',n:'Microsoft Corp.',cat:'stocks',ic:'🪟',col:'rgba(0,164,239,.15)',icol:'#00A4EF',spread:'0.15',lev:'1:20',p:415.3},
+  {s:'AMZN',n:'Amazon.com Inc.',cat:'stocks',ic:'📦',col:'rgba(255,153,0,.15)',icol:'#FF9900',spread:'0.18',lev:'1:20',p:185.4},
+  {s:'GOOGL',n:'Alphabet / Google',cat:'stocks',ic:'🔍',col:'rgba(66,133,244,.15)',icol:'#4285F4',spread:'0.20',lev:'1:20',p:174.2},
+  {s:'META',n:'Meta Platforms',cat:'stocks',ic:'👓',col:'rgba(8,102,255,.15)',icol:'#0866FF',spread:'0.22',lev:'1:20',p:493.5},
+  {s:'TSLA',n:'Tesla Inc.',cat:'stocks',ic:'⚡',col:'rgba(204,0,0,.15)',icol:'#CC0000',spread:'0.20',lev:'1:20',p:213.06},
+  {s:'NVDA',n:'NVIDIA Corp.',cat:'stocks',ic:'🟢',col:'rgba(118,185,0,.15)',icol:'#76B900',spread:'0.50',lev:'1:20',p:874.5},
+  {s:'NFLX',n:'Netflix Inc.',cat:'stocks',ic:'🎬',col:'rgba(229,9,20,.15)',icol:'#E50914',spread:'0.35',lev:'1:20',p:628.4},
+  {s:'JPM',n:'JPMorgan Chase',cat:'stocks',ic:'🏦',col:'rgba(0,94,184,.15)',icol:'#005EB8',spread:'0.15',lev:'1:20',p:198.3},
+  {s:'V',n:'Visa Inc.',cat:'stocks',ic:'💳',col:'rgba(26,31,113,.15)',icol:'#1A1F71',spread:'0.12',lev:'1:20',p:278.9},
+  {s:'XOM',n:'ExxonMobil Corp.',cat:'stocks',ic:'⛽',col:'rgba(255,0,0,.15)',icol:'#FF0000',spread:'0.14',lev:'1:20',p:114.2},
+  {s:'DIS',n:'Walt Disney Co.',cat:'stocks',ic:'🏰',col:'rgba(0,110,153,.15)',icol:'#006E99',spread:'0.15',lev:'1:20',p:112.4},
+];
+
+// Live price simulation
+const momentum = {};
+ALL.forEach(i => momentum[i.s] = 0);
+const VOL = {BTCUSD:.003,ETHUSD:.003,SOLUSD:.004,XAUUSD:.0015,WTIUSD:.002,US30:.001,EURUSD:.0004,GBPUSD:.0005};
+setInterval(() => {
+  ALL.forEach(i => {
+    const v = VOL[i.s] || .0005;
+    momentum[i.s] = momentum[i.s] * .88 + (Math.random() - .499) * v * .2;
+    i.p *= (1 + momentum[i.s]);
+    if (!i.p0) i.p0 = i.p;
+    if (!i.hist) i.hist = Array.from({length:7},(_,j) => i.p * (1 + (Math.random()-.5)*.04));
+    i.hist.push(i.p); i.hist.shift();
+  });
+  renderTable();
+}, 1000);
+
+// Init history
+ALL.forEach(i => { i.p0 = i.p; i.hist = Array.from({length:7},() => i.p * (1 + (Math.random()-.5)*.04)); });
+
+let catFilter = 'all', srchFilter = '';
+function setTab(cat, el) {
+  catFilter = cat;
+  document.querySelectorAll('.mf-tab').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  renderTable();
+}
+function searchInst(q) { srchFilter = q.toLowerCase(); renderTable(); }
+
+function fmt(s, p) {
+  if (!p) return '—';
+  if (['BTCUSD','ETHUSD','NAS100','US30','SPX500','DAX40','FTSE100','NIKKEI','ASX200','CAC40','STOXX50','AAPL','MSFT','AMZN','GOOGL','META','TSLA','NVDA','NFLX','JPM','V','XOM','DIS'].includes(s)) return p.toFixed(2);
+  if (s.includes('JPY') || ['NGAS','WTIUSD','BRENTUSD'].includes(s)) return p.toFixed(3);
+  return p.toFixed(5);
+}
+
+function sparkline(hist, isUp) {
+  const mn = Math.min(...hist), mx = Math.max(...hist), rng = mx - mn || 1;
+  return hist.map(v => {
+    const h = Math.round(((v - mn) / rng) * 22) + 4;
+    return `<div class="mc-b" style="height:${h}px;background:${isUp ? 'var(--green)' : 'var(--red)'}"></div>`;
+  }).join('');
+}
+
+function renderTable() {
+  const list = ALL.filter(i =>
+    (catFilter === 'all' || i.cat === catFilter) &&
+    (!srchFilter || i.s.toLowerCase().includes(srchFilter) || i.n.toLowerCase().includes(srchFilter))
+  );
+  const catNames = {all:'All Instruments',forex:'Forex Pairs',metals:'Metals & Commodities',energy:'Energy',crypto:'Cryptocurrencies',indices:'Global Indices',stocks:'US Stocks'};
+  document.getElementById('tableTitle').textContent = catNames[catFilter] || 'All';
+  document.getElementById('tableCount').textContent = `${list.length} instruments`;
+
+  document.getElementById('mktBody').innerHTML = list.map(i => {
+    const chg = i.p0 ? (i.p - i.p0) / i.p0 * 100 : (Math.random() - .48) * 2;
+    const isUp = chg >= 0;
+    const catLabel = {forex:'Forex',metals:'Metal',energy:'Energy',crypto:'Crypto',indices:'Index',stocks:'Stock'}[i.cat] || i.cat;
+    return `<tr onclick="location.href='../dashboard.html'">
+      <td><div class="sym-cell">
+        <div class="sym-ic" style="background:${i.col}">${i.ic}</div>
+        <div><div class="sym-name">${i.s}</div><div class="sym-full">${i.n}</div></div>
+      </div></td>
+      <td style="color:var(--t3);font-size:11px">${catLabel}</td>
+      <td class="r mono" style="font-weight:600">${fmt(i.s, i.p)}</td>
+      <td class="r"><span class="chg-pill ${isUp?'cpup':'cpdn'}">${isUp?'+':''}${chg.toFixed(3)}%</span></td>
+      <td class="r"><span class="spread-tag">${i.spread}</span></td>
+      <td class="r"><span class="lev-tag">${i.lev}</span></td>
+      <td class="r"><div class="mini-chart" style="justify-content:flex-end">${sparkline(i.hist, isUp)}</div></td>
+      <td class="r"><button class="trade-btn" onclick="event.stopPropagation();location.href='../dashboard.html'">Trade →</button></td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--t3);padding:32px">No instruments match your search</td></tr>`;
+}
+renderTable();
+</script>
+</body>
+</html>

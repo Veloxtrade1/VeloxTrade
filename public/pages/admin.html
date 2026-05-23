@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Velox Admin CRM — Internal Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#060910;--bg2:#0A0F1A;--bg3:#0F1525;--bg4:#141C2E;--b1:#1A2438;--b2:#1F2D47;--b3:#253659;
+--t1:#F0F4FF;--t2:#A8B4CC;--t3:#637089;--t4:#3D4F6E;
+--green:#00E5B0;--gbg:rgba(0,229,176,.1);--gbr:rgba(0,229,176,.2);
+--red:#FF3D5A;--rbg:rgba(255,61,90,.1);--rbr:rgba(255,61,90,.2);
+--blue:#4B8BF5;--bbg:rgba(75,139,245,.1);--bbr:rgba(75,139,245,.2);
+--gold:#FFB547;--goldbg:rgba(255,181,71,.1);--goldbr:rgba(255,181,71,.2);
+--purple:#8B5CF6;--pbg:rgba(139,92,246,.1);--orange:#FF6B35;--obg:rgba(255,107,53,.1);
+--font:'Space Grotesk',sans-serif;--mono:'JetBrains Mono',monospace}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);display:flex;height:100vh;overflow:hidden}
+::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+
+/* ── SIDEBAR ── */
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--b1);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:8px}
+.sb-logo-icon{width:32px;height:32px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.sb-logo-icon svg{width:18px;height:18px;fill:#fff}
+.sb-logo-text{font-size:16px;font-weight:800;letter-spacing:-.3px}
+.sb-logo-text span{color:var(--blue)}
+.sb-badge{background:var(--rbg);border:1px solid var(--rbr);color:var(--red);font-size:8px;font-weight:800;padding:2px 6px;border-radius:4px;margin-left:auto;letter-spacing:.05em}
+.sb-section{padding:16px 10px 6px;font-size:9px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.1em}
+.sb-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:8px;margin:1px 6px;cursor:pointer;transition:.15s;color:var(--t3);font-size:13px;font-weight:500;position:relative}
+.sb-item:hover{background:var(--bg3);color:var(--t1)}
+.sb-item.active{background:var(--bbg);color:var(--blue)}
+.sb-item.active::before{content:'';position:absolute;left:-6px;top:50%;transform:translateY(-50%);width:3px;height:20px;background:var(--blue);border-radius:0 2px 2px 0}
+.sb-item svg{width:16px;height:16px;fill:currentColor;flex-shrink:0}
+.sb-item-badge{margin-left:auto;background:var(--red);color:#fff;border-radius:100px;padding:1px 6px;font-size:9px;font-weight:800}
+.sb-item-badge.green{background:var(--green);color:#000}
+.sb-item-badge.gold{background:var(--gold);color:#000}
+.sb-footer{margin-top:auto;padding:12px;border-top:1px solid var(--b1)}
+.sb-admin-info{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:var(--bg3)}
+.sa-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.sa-name{font-size:12px;font-weight:600}
+.sa-role{font-size:10px;color:var(--t3)}
+
+/* ── MAIN ── */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--b1);padding:0 20px;height:52px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.tb-page-title{font-size:16px;font-weight:700;letter-spacing:-.3px}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.tb-search{background:var(--bg3);border:1px solid var(--b1);border-radius:8px;padding:7px 12px 7px 32px;font-size:12px;color:var(--t1);outline:none;font-family:var(--font);width:200px;position:relative}
+.tb-search::placeholder{color:var(--t3)}
+.search-wrap{position:relative}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;fill:var(--t3)}
+.tb-icon-btn{width:34px;height:34px;border-radius:8px;background:var(--bg3);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t3);transition:.2s;position:relative}
+.tb-icon-btn:hover{border-color:var(--b2);color:var(--t1)}
+.tb-icon-btn svg{width:16px;height:16px;fill:currentColor}
+.notif-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--red);border-radius:50%;border:1px solid var(--bg2)}
+.tb-admin-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--bg3);border:1px solid var(--b1);border-radius:8px;cursor:pointer;font-size:12px;color:var(--t2);transition:.2s}
+.tb-admin-btn:hover{border-color:var(--b2);color:var(--t1)}
+.ta-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.content{flex:1;overflow-y:auto;padding:20px}
+
+/* ── PANELS ── */
+.panel{display:none}.panel.active{display:block}
+
+/* ── CARDS ── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat-card{background:var(--bg2);border:1px solid var(--b1);border-radius:14px;padding:18px;transition:.2s;position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;top:0;right:0;width:60px;height:60px;border-radius:50%;transform:translate(20px,-20px);opacity:.06}
+.stat-card:hover{border-color:var(--b2)}
+.sc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.sc-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sc-icon svg{width:18px;height:18px;fill:currentColor}
+.sc-trend{font-size:10px;font-weight:700;padding:3px 7px;border-radius:4px;font-family:var(--mono)}
+.trend-up{background:var(--gbg);color:var(--green)}.trend-dn{background:var(--rbg);color:var(--red)}
+.sc-val{font-family:var(--mono);font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:3px}
+.sc-label{font-size:11px;color:var(--t3);font-weight:500}
+.sc-sub{font-size:10px;color:var(--t3);margin-top:4px}
+
+/* SECTION HEADERS */
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-hdr h3{font-size:15px;font-weight:700}
+.hdr-right{display:flex;gap:6px;align-items:center}
+.btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:var(--font);transition:.2s;display:inline-flex;align-items:center;gap:6px}
+.btn svg{width:13px;height:13px;fill:currentColor}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:#3a7ae8}
+.btn-green{background:var(--green);color:#000}.btn-green:hover{background:#00c49a}
+.btn-ghost{background:none;border:1px solid var(--b1);color:var(--t2)}.btn-ghost:hover{border-color:var(--blue);color:var(--blue)}
+.btn-red{background:var(--rbg);border:1px solid var(--rbr);color:var(--red)}.btn-red:hover{background:var(--red);color:#fff}
+.btn-sm{padding:5px 10px;font-size:11px;border-radius:5px}
+
+/* TABLES */
+.table-wrap{background:var(--bg2);border:1px solid var(--b1);border-radius:14px;overflow:hidden;margin-bottom:20px}
+.tw-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--b1)}
+.tw-title{font-size:14px;font-weight:700}
+table{width:100%;border-collapse:collapse}
+th{padding:10px 16px;text-align:left;font-size:9px;font-weight:700;color:var(--t3);letter-spacing:.07em;text-transform:uppercase;background:var(--bg3);border-bottom:1px solid var(--b1)}
+td{padding:11px 16px;font-size:12px;border-bottom:1px solid rgba(255,255,255,.02)}
+td.mono{font-family:var(--mono)}
+tr:hover td{background:rgba(255,255,255,.015)}
+tr:last-child td{border:none}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:4px;font-size:9px;font-weight:800;letter-spacing:.04em}
+.tag-green{background:var(--gbg);color:var(--green);border:1px solid var(--gbr)}
+.tag-red{background:var(--rbg);color:var(--red);border:1px solid var(--rbr)}
+.tag-blue{background:var(--bbg);color:var(--blue);border:1px solid var(--bbr)}
+.tag-gold{background:var(--goldbg);color:var(--gold);border:1px solid var(--goldbr)}
+.tag-purple{background:var(--pbg);color:var(--purple)}
+.tag-gray{background:var(--bg3);color:var(--t3);border:1px solid var(--b1)}
+.user-cell{display:flex;align-items:center;gap:8px}
+.user-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
+.user-name{font-size:12px;font-weight:600}
+.user-email{font-size:10px;color:var(--t3)}
+.action-btns{display:flex;gap:4px}
+
+/* GRID LAYOUTS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+
+/* MINI CHART (CSS) */
+.sparkline{display:flex;align-items:flex-end;gap:2px;height:32px}
+.spark-bar{background:var(--blue);border-radius:1px;width:4px;opacity:.7;transition:.3s}
+
+/* KYC CARD */
+.kyc-card{background:var(--bg2);border:1px solid var(--b1);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;margin-bottom:8px;transition:.2s}
+.kyc-card:hover{border-color:var(--b2)}
+.kyc-card img{width:40px;height:40px;border-radius:8px;object-fit:cover;background:var(--bg3)}
+.kyc-thumb{width:40px;height:40px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.kyc-info{flex:1}
+.kyc-name{font-size:13px;font-weight:700}
+.kyc-detail{font-size:11px;color:var(--t3);margin-top:2px}
+.kyc-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* TICKET CARD */
+.ticket{background:var(--bg2);border:1px solid var(--b1);border-radius:12px;padding:14px;margin-bottom:8px;cursor:pointer;transition:.2s}
+.ticket:hover{border-color:var(--b2)}
+.ticket-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.ticket-id{font-size:10px;color:var(--t3);font-family:var(--mono)}
+.ticket-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.ticket-preview{font-size:11px;color:var(--t2);line-height:1.5}
+.ticket-footer{display:flex;gap:10px;align-items:center;margin-top:8px;font-size:10px;color:var(--t3)}
+
+/* FORM */
+.form-group{margin-bottom:14px}
+.fg-label{display:block;font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.fg-inp{width:100%;background:var(--bg3);border:1px solid var(--b1);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--t1);font-family:var(--font);outline:none;transition:.2s}
+.fg-inp:focus{border-color:var(--blue)}
+.fg-sel{width:100%;background:var(--bg3);border:1px solid var(--b1);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--t1);font-family:var(--font);outline:none}
+.fg-ta{width:100%;background:var(--bg3);border:1px solid var(--b1);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--t1);font-family:var(--font);outline:none;resize:vertical;min-height:80px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:999;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--bg2);border:1px solid var(--b1);border-radius:16px;padding:24px;width:100%;max-width:480px;position:relative}
+.modal-box h3{font-size:16px;font-weight:800;margin-bottom:16px}
+.modal-close{position:absolute;top:14px;right:14px;background:var(--bg3);border:1px solid var(--b1);width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t3);font-size:13px}
+
+/* ACTIVITY FEED */
+.activity-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.03)}
+.activity-item:last-child{border:none}
+.act-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.act-text{font-size:12px;color:var(--t2);line-height:1.5;flex:1}
+.act-text strong{color:var(--t1);font-weight:600}
+.act-time{font-size:10px;color:var(--t3);white-space:nowrap}
+
+/* EMPLOYEE CARD */
+.emp-card{background:var(--bg2);border:1px solid var(--b1);border-radius:14px;padding:18px;text-align:center;transition:.2s}
+.emp-card:hover{border-color:var(--b2);transform:translateY(-2px)}
+.emp-avatar{width:52px;height:52px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800}
+.emp-name{font-size:14px;font-weight:700;margin-bottom:3px}
+.emp-role{font-size:11px;color:var(--blue);font-weight:600;margin-bottom:6px}
+.emp-dept{font-size:10px;color:var(--t3);margin-bottom:12px}
+.emp-stats{display:flex;justify-content:space-around;border-top:1px solid var(--b1);padding-top:10px}
+.emp-stat-v{font-size:13px;font-weight:700;font-family:var(--mono)}
+.emp-stat-l{font-size:9px;color:var(--t3)}
+
+/* RISK METER */
+.risk-meter{height:8px;background:var(--b1);border-radius:4px;overflow:hidden;margin-top:6px}
+.rm-fill{height:100%;border-radius:4px;transition:width 1s}
+
+@media(max-width:1200px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){.sidebar{display:none}.stat-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+    <span class="sb-logo-text">Vel<span>ox</span> <em style="font-style:normal;font-size:9px;color:var(--t3)">Admin</em></span>
+    <span class="sb-badge">CRM</span>
+  </div>
+
+  <div class="sb-section">Overview</div>
+  <div class="sb-item active" onclick="showPanel('overview',this)">
+    <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>Dashboard
+  </div>
+  <div class="sb-item" onclick="showPanel('analytics',this)">
+    <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6h-6z"/></svg>Analytics
+  </div>
+
+  <div class="sb-section">Client Management</div>
+  <div class="sb-item" onclick="showPanel('clients',this)">
+    <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>All Clients
+    <span class="sb-item-badge green" id="clientCountBadge">0</span>
+  </div>
+  <div class="sb-item" onclick="showPanel('kyc',this)">
+    <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>KYC Verification
+    <span class="sb-item-badge" style="background:var(--gold);color:#000">5</span>
+  </div>
+  <div class="sb-item" onclick="showPanel('accounts',this)">
+    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93s3.06-7.44 7-7.93v15.86zm2 0V4.07c3.94.49 7 3.85 7 7.93s-3.06 7.44-7 7.93z"/></svg>Accounts & Balances
+  </div>
+
+  <div class="sb-section">Finance</div>
+  <div class="sb-item" onclick="showPanel('deposits',this)">
+    <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>Deposits
+    <span class="sb-item-badge green">12</span>
+  </div>
+  <div class="sb-item" onclick="showPanel('withdrawals',this)">
+    <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Withdrawals
+    <span class="sb-item-badge" style="background:var(--gold);color:#000">3</span>
+  </div>
+  <div class="sb-item" onclick="showPanel('finance',this)">
+    <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>Finance Overview
+  </div>
+  <div class="sb-item" onclick="showPanel('transactions',this)">
+    <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>All Transactions
+  </div>
+
+  <div class="sb-section">Operations</div>
+  <div class="sb-item" onclick="showPanel('trading',this)">
+    <svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zm16 16V5H5v14h14zM7 15l3-4 3 3 3-5"/></svg>Trading Monitor
+  </div>
+  <div class="sb-item" onclick="showPanel('risk',this)">
+    <svg viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/></svg>Risk Management
+  </div>
+  <div class="sb-item" onclick="showPanel('support',this)">
+    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>Support Tickets
+    <span class="sb-item-badge">7</span>
+  </div>
+  <div class="sb-item" onclick="showPanel('marketing',this)">
+    <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6h-6z"/></svg>Marketing & IB
+  </div>
+
+  <div class="sb-section">HR & Company</div>
+  <div class="sb-item" onclick="showPanel('employees',this)">
+    <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Employees
+  </div>
+  <div class="sb-item" onclick="showPanel('compliance',this)">
+    <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>Compliance & Legal
+  </div>
+  <div class="sb-item" onclick="showPanel('settings',this)">
+    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58z"/></svg>Platform Settings
+  </div>
+
+  <div class="sb-footer">
+    <div class="sb-admin-info">
+      <div class="sa-avatar">A</div>
+      <div><div class="sa-name">Admin</div><div class="sa-role">Super Admin</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <span class="tb-page-title" id="pageTitle">Dashboard Overview</span>
+    <div class="tb-right">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <input class="tb-search" placeholder="Search clients, transactions..." id="globalSearch" oninput="globalSearchFn(this.value)">
+      </div>
+      <div class="tb-icon-btn" title="Notifications">
+        <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        <div class="notif-dot"></div>
+      </div>
+      <div class="tb-icon-btn" title="Reports" onclick="showPanel('finance',null)">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+      </div>
+      <div class="tb-admin-btn">
+        <div class="ta-dot"></div>
+        <span style="font-size:11px;font-weight:600">Live</span>
+      </div>
+      <a href="../index.html" style="color:var(--t3);font-size:12px;padding:6px 10px;border:1px solid var(--b1);border-radius:6px;text-decoration:none;transition:.2s" onmouseover="this.style.color='var(--t1)'" onmouseout="this.style.color='var(--t3)'">← Main Site</a>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- OVERVIEW PANEL -->
+    <div class="panel active" id="panel-overview">
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="sc-top">
+            <div class="sc-icon" style="background:var(--bbg);color:var(--blue)"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
+            <span class="sc-trend trend-up" id="clientTrend">+12%</span>
+          </div>
+          <div class="sc-val" id="totalClients">0</div>
+          <div class="sc-label">Total Clients</div>
+          <div class="sc-sub" id="clientSub">Loading...</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-top">
+            <div class="sc-icon" style="background:var(--gbg);color:var(--green)"><svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg></div>
+            <span class="sc-trend trend-up">+8.4%</span>
+          </div>
+          <div class="sc-val" style="color:var(--green)">$247,340</div>
+          <div class="sc-label">Total AUM</div>
+          <div class="sc-sub">Assets under management</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-top">
+            <div class="sc-icon" style="background:var(--goldbg);color:var(--gold)"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg></div>
+            <span class="sc-trend trend-up">+23%</span>
+          </div>
+          <div class="sc-val" style="color:var(--gold)">$18,924</div>
+          <div class="sc-label">Deposits Today</div>
+          <div class="sc-sub">12 transactions pending</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-top">
+            <div class="sc-icon" style="background:var(--rbg);color:var(--red)"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg></div>
+            <span class="sc-trend trend-dn">-5%</span>
+          </div>
+          <div class="sc-val" style="color:var(--red)">$4,210</div>
+          <div class="sc-label">Withdrawals Today</div>
+          <div class="sc-sub">3 pending approval</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- RECENT CLIENTS -->
+        <div>
+          <div class="section-hdr">
+            <h3>Recent Registrations</h3>
+            <div class="hdr-right">
+              <button class="btn btn-ghost btn-sm" onclick="showPanel('clients',null)">View All</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Client</th><th>Country</th><th>Balance</th><th>KYC</th></tr></thead>
+              <tbody id="recentClientsTable"><tr><td colspan="4" style="text-align:center;color:var(--t3);padding:20px">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ACTIVITY FEED -->
+        <div>
+          <div class="section-hdr"><h3>Live Activity Feed</h3><button class="btn btn-ghost btn-sm" onclick="refreshActivity()">Refresh</button></div>
+          <div class="table-wrap" style="padding:14px 18px">
+            <div id="activityFeed"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PENDING ACTIONS -->
+      <div class="section-hdr">
+        <h3>⚡ Actions Required</h3>
+        <span style="font-size:11px;color:var(--t3)">Items needing immediate attention</span>
+      </div>
+      <div class="grid-3" id="actionsGrid">
+        <div class="table-wrap" style="padding:16px;border-color:var(--goldbr)">
+          <div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">⏳ KYC PENDING (5)</div>
+          <div style="font-size:12px;color:var(--t2);line-height:1.8">5 clients waiting document review.<br>Oldest submission: 14 hours ago.</div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:12px;border-color:var(--goldbr);color:var(--gold)" onclick="showPanel('kyc',null)">Review Now →</button>
+        </div>
+        <div class="table-wrap" style="padding:16px;border-color:var(--gbr)">
+          <div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">💰 DEPOSITS (12)</div>
+          <div style="font-size:12px;color:var(--t2);line-height:1.8">12 deposit confirmations pending.<br>Total value: $18,924 USD.</div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:12px;border-color:var(--gbr);color:var(--green)" onclick="showPanel('deposits',null)">Approve →</button>
+        </div>
+        <div class="table-wrap" style="padding:16px;border-color:var(--rbr)">
+          <div style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">📤 WITHDRAWALS (3)</div>
+          <div style="font-size:12px;color:var(--t2);line-height:1.8">3 withdrawal requests pending.<br>Total value: $4,210 USD.</div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:12px;border-color:var(--rbr);color:var(--red)" onclick="showPanel('withdrawals',null)">Process →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIENTS PANEL -->
+    <div class="panel" id="panel-clients">
+      <div class="section-hdr">
+        <h3>Client Management</h3>
+        <div class="hdr-right">
+          <button class="btn btn-ghost btn-sm" onclick="exportClients()">
+            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Export CSV
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="openAddClientModal()">
+            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Add Client
+          </button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <select class="fg-sel" style="width:auto;font-size:12px;padding:6px 10px" id="clientFilter" onchange="renderClientsTable()">
+          <option value="all">All Clients</option>
+          <option value="verified">KYC Verified</option>
+          <option value="pending">KYC Pending</option>
+          <option value="active">Active Traders</option>
+        </select>
+        <select class="fg-sel" style="width:auto;font-size:12px;padding:6px 10px">
+          <option>All Countries</option>
+          <option>Pakistan</option>
+          <option>Bangladesh</option>
+          <option>Sri Lanka</option>
+        </select>
+        <input class="fg-inp" style="width:200px;font-size:12px;padding:7px 12px" placeholder="Search by name or email..." id="clientSearchInput" oninput="renderClientsTable()">
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Client</th><th>Country</th><th>Balance</th><th>Deposits</th><th>KYC</th><th>Trades</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="clientsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- KYC PANEL -->
+    <div class="panel" id="panel-kyc">
+      <div class="section-hdr">
+        <h3>KYC Verification Queue</h3>
+        <div class="hdr-right">
+          <span style="font-size:11px;color:var(--t3)">5 pending · Average review time: 18 min</span>
+        </div>
+      </div>
+      <div id="kycQueue"></div>
+    </div>
+
+    <!-- DEPOSITS PANEL -->
+    <div class="panel" id="panel-deposits">
+      <div class="section-hdr">
+        <h3>Deposit Management</h3>
+        <div class="hdr-right">
+          <span style="font-size:11px;padding:4px 10px;background:var(--gbg);color:var(--green);border-radius:4px;font-weight:700">12 Pending</span>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Client</th><th>Amount</th><th>Currency</th><th>TX Hash</th><th>Time</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="depositsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- WITHDRAWALS PANEL -->
+    <div class="panel" id="panel-withdrawals">
+      <div class="section-hdr">
+        <h3>Withdrawal Requests</h3>
+        <div class="hdr-right">
+          <span style="font-size:11px;padding:4px 10px;background:var(--rbg);color:var(--red);border-radius:4px;font-weight:700">3 Pending</span>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Client</th><th>Amount</th><th>Wallet Address</th><th>Requested</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="withdrawalsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FINANCE PANEL -->
+    <div class="panel" id="panel-finance">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:var(--gbg);color:var(--green)"><svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85z"/></svg></div></div><div class="sc-val" style="color:var(--green)">$247,340</div><div class="sc-label">Total Client Funds</div></div>
+        <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:var(--bbg);color:var(--blue)"></div></div><div class="sc-val">$18,924</div><div class="sc-label">Deposits This Month</div></div>
+        <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:var(--rbg);color:var(--red)"></div></div><div class="sc-val" style="color:var(--red)">$8,420</div><div class="sc-label">Withdrawals This Month</div></div>
+        <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:var(--goldbg);color:var(--gold)"></div></div><div class="sc-val" style="color:var(--gold)">$2,840</div><div class="sc-label">Revenue (Spreads)</div></div>
+      </div>
+      <div class="section-hdr"><h3>Financial Summary</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Period</th><th>Deposits</th><th>Withdrawals</th><th>Net Flow</th><th>Revenue</th><th>Active Clients</th></tr></thead>
+          <tbody>
+            <tr><td>Today</td><td class="mono" style="color:var(--green)">$18,924</td><td class="mono" style="color:var(--red)">$4,210</td><td class="mono" style="color:var(--green)">+$14,714</td><td class="mono" style="color:var(--gold)">$342</td><td>47</td></tr>
+            <tr><td>This Week</td><td class="mono" style="color:var(--green)">$84,230</td><td class="mono" style="color:var(--red)">$22,140</td><td class="mono" style="color:var(--green)">+$62,090</td><td class="mono" style="color:var(--gold)">$1,840</td><td>183</td></tr>
+            <tr><td>This Month</td><td class="mono" style="color:var(--green)">$312,400</td><td class="mono" style="color:var(--red)">$89,200</td><td class="mono" style="color:var(--green)">+$223,200</td><td class="mono" style="color:var(--gold)">$7,420</td><td>642</td></tr>
+            <tr><td>All Time</td><td class="mono" style="color:var(--green)">$1,247,800</td><td class="mono" style="color:var(--red)">$398,200</td><td class="mono" style="color:var(--green)">+$849,600</td><td class="mono" style="color:var(--gold)">$28,400</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TRADING MONITOR -->
+    <div class="panel" id="panel-trading">
+      <div class="section-hdr"><h3>Live Trading Monitor</h3><span class="tb-admin-btn" style="font-size:11px"><div class="ta-dot"></div>Live Feed</span></div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="sc-val" id="openPosCnt">0</div><div class="sc-label">Open Positions</div></div>
+        <div class="stat-card"><div class="sc-val" style="color:var(--green)">$12,480</div><div class="sc-label">Total Exposure</div></div>
+        <div class="stat-card"><div class="sc-val" style="color:var(--gold)">EUR/USD</div><div class="sc-label">Most Traded</div></div>
+        <div class="stat-card"><div class="sc-val">384</div><div class="sc-label">Trades Today</div></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Client</th><th>Symbol</th><th>Side</th><th>Lots</th><th>Entry</th><th>Current</th><th>P&L</th><th>Margin</th></tr></thead>
+          <tbody id="liveTradesTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RISK PANEL -->
+    <div class="panel" id="panel-risk">
+      <div class="section-hdr"><h3>Risk Management Dashboard</h3></div>
+      <div class="grid-2">
+        <div class="table-wrap" style="padding:18px">
+          <div style="font-size:13px;font-weight:700;margin-bottom:16px">Client Risk Exposure</div>
+          <div id="riskMeters"></div>
+        </div>
+        <div class="table-wrap" style="padding:18px">
+          <div style="font-size:13px;font-weight:700;margin-bottom:16px">Risk Alerts</div>
+          <div id="riskAlerts"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUPPORT PANEL -->
+    <div class="panel" id="panel-support">
+      <div class="section-hdr">
+        <h3>Support Tickets</h3>
+        <div class="hdr-right">
+          <select class="fg-sel" style="width:auto;font-size:12px;padding:6px 10px">
+            <option>All Tickets</option><option>Open</option><option>Pending</option><option>Resolved</option>
+          </select>
+        </div>
+      </div>
+      <div id="supportTickets"></div>
+    </div>
+
+    <!-- EMPLOYEES PANEL -->
+    <div class="panel" id="panel-employees">
+      <div class="section-hdr">
+        <h3>Employee Management</h3>
+        <button class="btn btn-primary btn-sm" onclick="openAddEmployeeModal()">+ Add Employee</button>
+      </div>
+      <div class="grid-3" id="employeeGrid"></div>
+    </div>
+
+    <!-- COMPLIANCE PANEL -->
+    <div class="panel" id="panel-compliance">
+      <div class="section-hdr"><h3>Compliance & Legal</h3></div>
+      <div class="grid-2">
+        <div class="table-wrap" style="padding:18px">
+          <div style="font-size:13px;font-weight:700;margin-bottom:16px">AML Monitoring</div>
+          <div id="amlAlerts"></div>
+        </div>
+        <div class="table-wrap" style="padding:18px">
+          <div style="font-size:13px;font-weight:700;margin-bottom:16px">Regulatory Checklist</div>
+          <div id="complianceList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MARKETING & IB PANEL -->
+    <div class="panel" id="panel-marketing">
+      <div class="section-hdr"><h3>Marketing & IB Partners</h3></div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="sc-val" style="color:var(--blue)">24</div><div class="sc-label">Active IB Partners</div></div>
+        <div class="stat-card"><div class="sc-val">$3,420</div><div class="sc-label">Commission Paid MTD</div></div>
+        <div class="stat-card"><div class="sc-val" style="color:var(--green)">147</div><div class="sc-label">Referred Clients</div></div>
+        <div class="stat-card"><div class="sc-val">$892</div><div class="sc-label">Avg Commission/IB</div></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>IB Partner</th><th>Clients Referred</th><th>Commission Rate</th><th>Earned MTD</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="ibTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ACCOUNTS PANEL -->
+    <div class="panel" id="panel-accounts">
+      <div class="section-hdr"><h3>Client Accounts & Balances</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Account</th><th>Client</th><th>Type</th><th>Balance</th><th>Margin</th><th>Open P&L</th><th>Action</th></tr></thead>
+          <tbody id="accountsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS PANEL -->
+    <div class="panel" id="panel-transactions">
+      <div class="section-hdr"><h3>All Transactions</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Client</th><th>Type</th><th>Amount</th><th>Currency</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody id="transactionsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ANALYTICS PANEL -->
+    <div class="panel" id="panel-analytics">
+      <div class="section-hdr"><h3>Platform Analytics</h3></div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="sc-val" style="color:var(--blue)">4,820</div><div class="sc-label">Page Views Today</div><div class="sc-trend trend-up" style="display:inline-block;margin-top:6px">+18%</div></div>
+        <div class="stat-card"><div class="sc-val">342</div><div class="sc-label">New Signups MTD</div><div class="sc-trend trend-up" style="display:inline-block;margin-top:6px">+24%</div></div>
+        <div class="stat-card"><div class="sc-val" style="color:var(--green)">68%</div><div class="sc-label">Conversion Rate</div></div>
+        <div class="stat-card"><div class="sc-val">$72</div><div class="sc-label">Avg Deposit Size</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="table-wrap" style="padding:18px">
+          <div style="font-size:13px;font-weight:700;margin-bottom:14px">Top Countries by Signups</div>
+          <div id="countryStats"></div>
+        </div>
+        <div class="table-wrap" style="padding:18px">
+          <div style="font-size:13px;font-weight:700;margin-bottom:14px">Device Breakdown</div>
+          <div id="deviceStats"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PANEL -->
+    <div class="panel" id="panel-settings">
+      <div class="section-hdr"><h3>Platform Settings</h3></div>
+      <div class="grid-2">
+        <div class="table-wrap" style="padding:20px">
+          <div style="font-size:13px;font-weight:700;margin-bottom:16px">General Settings</div>
+          <div class="form-group"><label class="fg-label">Platform Name</label><input class="fg-inp" value="Velox Trading"></div>
+          <div class="form-group"><label class="fg-label">Support Email</label><input class="fg-inp" value="support@veloxtrade.com"></div>
+          <div class="form-group"><label class="fg-label">BTC Deposit Address</label><input class="fg-inp" placeholder="Your BTC wallet address"></div>
+          <div class="form-group"><label class="fg-label">USDT (TRC20) Address</label><input class="fg-inp" placeholder="Your USDT TRC20 address"></div>
+          <div class="form-group"><label class="fg-label">Min Deposit (USD)</label><input class="fg-inp" value="10" type="number"></div>
+          <div class="form-group"><label class="fg-label">Min Withdrawal (USD)</label><input class="fg-inp" value="10" type="number"></div>
+          <button class="btn btn-green" style="width:100%;justify-content:center;margin-top:8px">Save Settings</button>
+        </div>
+        <div class="table-wrap" style="padding:20px">
+          <div style="font-size:13px;font-weight:700;margin-bottom:16px">Trading Parameters</div>
+          <div class="form-group"><label class="fg-label">Default Leverage</label><select class="fg-sel"><option>1:100</option><option selected>1:500</option><option>1:1000</option><option>1:2000</option></select></div>
+          <div class="form-group"><label class="fg-label">Spread Markup (pips)</label><input class="fg-inp" value="0.3" type="number" step="0.1"></div>
+          <div class="form-group"><label class="fg-label">Commission per Lot ($)</label><input class="fg-inp" value="3.50" type="number" step="0.5"></div>
+          <div class="form-group"><label class="fg-label">Margin Call Level (%)</label><input class="fg-inp" value="80" type="number"></div>
+          <div class="form-group"><label class="fg-label">Stop Out Level (%)</label><input class="fg-inp" value="50" type="number"></div>
+          <div class="form-group"><label class="fg-label">Max Lot Size</label><input class="fg-inp" value="100" type="number"></div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px">Update Trading Config</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- content -->
+</div><!-- main -->
+
+<!-- ADD CLIENT MODAL -->
+<div class="modal-overlay" id="addClientModal">
+  <div class="modal-box">
+    <div class="modal-close" onclick="closeModal('addClientModal')">✕</div>
+    <h3>Add New Client</h3>
+    <div class="form-row">
+      <div class="form-group"><label class="fg-label">Full Name</label><input class="fg-inp" id="nc-name" placeholder="Full name"></div>
+      <div class="form-group"><label class="fg-label">Email</label><input class="fg-inp" id="nc-email" type="email" placeholder="email@example.com"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="fg-label">Country</label><select class="fg-sel" id="nc-country"><option value="Pakistan">Pakistan</option><option value="Bangladesh">Bangladesh</option><option value="Sri Lanka">Sri Lanka</option><option value="Nepal">Nepal</option></select></div>
+      <div class="form-group"><label class="fg-label">Initial Balance ($)</label><input class="fg-inp" id="nc-balance" type="number" value="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="fg-label">Account Type</label><select class="fg-sel"><option>Standard</option><option>Raw Spread</option><option>Demo</option></select></div>
+      <div class="form-group"><label class="fg-label">KYC Status</label><select class="fg-sel" id="nc-kyc"><option value="unverified">Unverified</option><option value="pending">Pending</option><option value="verified">Verified</option></select></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="addClientManual()">Create Client</button>
+      <button class="btn btn-ghost" onclick="closeModal('addClientModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADJUST BALANCE MODAL -->
+<div class="modal-overlay" id="balanceModal">
+  <div class="modal-box">
+    <div class="modal-close" onclick="closeModal('balanceModal')">✕</div>
+    <h3>Adjust Client Balance</h3>
+    <div style="background:var(--bg3);border:1px solid var(--b1);border-radius:10px;padding:12px;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--t3)">Client</div>
+      <div style="font-size:14px;font-weight:700" id="balModal-name">—</div>
+      <div style="font-size:13px;font-weight:700;color:var(--green);font-family:var(--mono)" id="balModal-bal">$0.00</div>
+    </div>
+    <div class="form-group"><label class="fg-label">Adjustment Type</label>
+      <select class="fg-sel" id="balModal-type">
+        <option value="credit">Credit (Add funds)</option>
+        <option value="debit">Debit (Remove funds)</option>
+        <option value="set">Set to specific amount</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="fg-label">Amount (USD)</label><input class="fg-inp" id="balModal-amount" type="number" placeholder="0.00"></div>
+    <div class="form-group"><label class="fg-label">Reason / Note</label><input class="fg-inp" id="balModal-note" placeholder="e.g. Deposit confirmation, Bonus, etc."></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-green" style="flex:1;justify-content:center" onclick="applyBalanceAdjustment()">Apply Adjustment</button>
+      <button class="btn btn-ghost" onclick="closeModal('balanceModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ADMIN_KEY = 'admin123';
+let allClients = [];
+let selectedClientId = null;
+
+// ── FAKE CLIENTS DATA ─────────────────────────────────────────
+const FAKE_CLIENTS = [
+  {id:'c1',email:'ahmed.k@gmail.com',fullName:'Ahmed Khan',country:'Pakistan',balance:8420,deposits:12500,kycStatus:'verified',trades:234,joined:'2024-11-15'},
+  {id:'c2',email:'rafiq.m@gmail.com',fullName:'Rafiq Mohammed',country:'Bangladesh',balance:3200,deposits:5000,kycStatus:'verified',trades:87,joined:'2024-12-02'},
+  {id:'c3',email:'sandun.p@email.com',fullName:'Sandun Perera',country:'Sri Lanka',balance:450,deposits:1200,kycStatus:'pending',trades:12,joined:'2025-01-08'},
+  {id:'c4',email:'ram.s@email.com',fullName:'Ram Sharma',country:'Nepal',balance:1850,deposits:2500,kycStatus:'verified',trades:64,joined:'2025-01-22'},
+  {id:'c5',email:'fatima.a@gmail.com',fullName:'Fatima Ali',country:'Pakistan',balance:0,deposits:0,kycStatus:'unverified',trades:0,joined:'2025-02-14'},
+  {id:'c6',email:'karim.h@email.com',fullName:'Karim Hassan',country:'Bangladesh',balance:12400,deposits:18000,kycStatus:'verified',trades:412,joined:'2024-10-05'},
+  {id:'c7',email:'priya.s@email.com',fullName:'Priya Silva',country:'Sri Lanka',balance:780,deposits:1500,kycStatus:'pending',trades:23,joined:'2025-02-28'},
+  {id:'c8',email:'ali.r@gmail.com',fullName:'Ali Raza',country:'Pakistan',balance:5600,deposits:8000,kycStatus:'verified',trades:156,joined:'2024-12-18'},
+];
+
+const FAKE_DEPS = [
+  {client:'Ahmed Khan',email:'ahmed.k@gmail.com',amount:500,currency:'USDT',hash:'Txx123abc...def',time:'2h ago',status:'pending'},
+  {client:'Rafiq Mohammed',email:'rafiq.m@gmail.com',amount:1000,currency:'BTC',hash:'bc1q...xyz789',time:'4h ago',status:'pending'},
+  {client:'Ram Sharma',email:'ram.s@email.com',amount:200,currency:'USDT',hash:'Txx456def...ghi',time:'6h ago',status:'pending'},
+  {client:'Karim Hassan',email:'karim.h@email.com',amount:2000,currency:'ETH',hash:'0x1a2b...3c4d',time:'8h ago',status:'approved'},
+  {client:'Ali Raza',email:'ali.r@gmail.com',amount:750,currency:'BTC',hash:'bc1q...mnop',time:'1d ago',status:'approved'},
+];
+
+const FAKE_WDS = [
+  {client:'Ahmed Khan',amount:800,address:'Txx...wallet1',time:'1h ago',status:'pending'},
+  {client:'Karim Hassan',amount:2500,address:'bc1q...wallet2',time:'3h ago',status:'pending'},
+  {client:'Ali Raza',amount:910,address:'Txx...wallet3',time:'5h ago',status:'pending'},
+];
+
+const FAKE_TICKETS = [
+  {id:'#T-1042',title:'Cannot withdraw — transaction stuck',priority:'high',status:'open',client:'Ahmed Khan',time:'30m ago',preview:'I submitted a withdrawal 3 days ago and it still shows pending. My TX hash is...'},
+  {id:'#T-1041',title:'KYC document rejected — need help',priority:'medium',status:'pending',client:'Sandun Perera',time:'2h ago',preview:'My national ID was rejected but it is valid. Please review my submission again.'},
+  {id:'#T-1040',title:'Login issue — 2FA not working',priority:'low',status:'open',client:'Ram Sharma',time:'4h ago',preview:'I am unable to login since yesterday. The app keeps showing invalid code error.'},
+  {id:'#T-1039',title:'Deposit not credited after 24 hours',priority:'high',status:'open',client:'Fatima Ali',time:'1d ago',preview:'I sent 500 USDT yesterday and my account balance is still zero. TX hash attached.'},
+  {id:'#T-1038',title:'How to change leverage?',priority:'low',status:'resolved',client:'Rafiq Mohammed',time:'2d ago',preview:'I want to increase my leverage from 1:100 to 1:500. Is this possible?'},
+];
+
+const FAKE_EMPLOYEES = [
+  {name:'Omar Farooq',role:'Head of Compliance',dept:'Legal',avatar:'O',color:'#4B8BF5',clients:0,tickets:0,since:'2024-01'},
+  {name:'Sara Ahmed',role:'Client Support Lead',dept:'Support',avatar:'S',color:'#00E5B0',clients:0,tickets:24,since:'2024-03'},
+  {name:'Hassan Ali',role:'Senior Trader / Analyst',dept:'Trading',avatar:'H',color:'#FFB547',clients:0,tickets:0,since:'2024-06'},
+  {name:'Nadia Khan',role:'Marketing Manager',dept:'Marketing',avatar:'N',color:'#8B5CF6',clients:0,tickets:0,since:'2024-08'},
+  {name:'Bilal Sheikh',role:'IT & Platform Admin',dept:'Technology',avatar:'B',color:'#FF6B35',clients:0,tickets:8,since:'2024-02'},
+  {name:'Aisha Rahman',role:'KYC Officer',dept:'Compliance',avatar:'A',color:'#FF3D5A',clients:0,tickets:18,since:'2024-09'},
+];
+
+const LIVE_TRADES = [
+  {client:'Ahmed Khan',symbol:'EURUSD',side:'BUY',lots:0.5,entry:1.0821,current:1.0843,pl:+11.0,margin:108.2},
+  {client:'Karim Hassan',symbol:'XAUUSD',side:'BUY',lots:1,entry:2308.4,current:2314.5,pl:+61.0,margin:462.0},
+  {client:'Ali Raza',symbol:'BTCUSD',side:'SELL',lots:0.01,entry:68200,current:67842,pl:+35.8,margin:136.4},
+  {client:'Rafiq Mohammed',symbol:'GBPUSD',side:'BUY',lots:0.3,entry:1.2654,current:1.2678,pl:+7.2,margin:75.9},
+  {client:'Ram Sharma',symbol:'NAS100',side:'BUY',lots:0.1,entry:17820,current:17834,pl:+14.0,margin:356.4},
+];
+
+// ── PANEL NAVIGATION ─────────────────────────────────────────
+function showPanel(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = {overview:'Dashboard Overview',clients:'Client Management',kyc:'KYC Verification',deposits:'Deposits',withdrawals:'Withdrawals',finance:'Finance Overview',trading:'Trading Monitor',risk:'Risk Management',support:'Support Tickets',employees:'Employees',compliance:'Compliance',marketing:'Marketing & IB',accounts:'Client Accounts',transactions:'All Transactions',analytics:'Analytics',settings:'Platform Settings'};
+  document.getElementById('pageTitle').textContent = titles[id] || id;
+  // Lazy render
+  if (id === 'clients') renderClientsTable();
+  if (id === 'kyc') renderKYC();
+  if (id === 'deposits') renderDeposits();
+  if (id === 'withdrawals') renderWithdrawals();
+  if (id === 'support') renderSupport();
+  if (id === 'employees') renderEmployees();
+  if (id === 'trading') renderLiveTrades();
+  if (id === 'risk') renderRisk();
+  if (id === 'compliance') renderCompliance();
+  if (id === 'marketing') renderIB();
+  if (id === 'accounts') renderAccounts();
+  if (id === 'transactions') renderTransactions();
+  if (id === 'analytics') renderAnalytics();
+}
+
+// ── LOAD DATA ─────────────────────────────────────────────────
+async function loadData() {
+  // Try to fetch from API
+  try {
+    const r = await fetch('/api/admin/users', { headers: { 'admin-key': ADMIN_KEY } });
+    if (r.ok) {
+      const data = await r.json();
+      allClients = data.length ? data : FAKE_CLIENTS;
+    } else { allClients = FAKE_CLIENTS; }
+  } catch { allClients = FAKE_CLIENTS; }
+
+  // Update overview stats
+  document.getElementById('totalClients').textContent = allClients.length;
+  document.getElementById('clientCountBadge').textContent = allClients.length;
+  document.getElementById('clientSub').textContent = `${allClients.filter(c=>c.kycStatus==='verified').length} verified`;
+
+  renderRecentClients();
+  renderActivity();
+}
+
+// ── RECENT CLIENTS ────────────────────────────────────────────
+function renderRecentClients() {
+  const tbody = document.getElementById('recentClientsTable');
+  const recent = [...allClients].slice(0, 6);
+  tbody.innerHTML = recent.map(c => `
+    <tr>
+      <td><div class="user-cell"><div class="user-avatar" style="background:${randomColor(c.fullName||c.email)}">${(c.fullName||c.email||'?')[0].toUpperCase()}</div><div><div class="user-name">${c.fullName||'—'}</div><div class="user-email">${c.email}</div></div></div></td>
+      <td><span style="font-size:12px">${flagEmoji(c.country)} ${c.country||'—'}</span></td>
+      <td class="mono" style="color:var(--green)">$${(c.balance||0).toFixed(2)}</td>
+      <td>${kycBadge(c.kycStatus)}</td>
+    </tr>`).join('');
+}
+
+// ── CLIENTS TABLE ─────────────────────────────────────────────
+function renderClientsTable() {
+  const search = (document.getElementById('clientSearchInput')||{}).value?.toLowerCase()||'';
+  const filter = (document.getElementById('clientFilter')||{}).value||'all';
+  let list = allClients.filter(c => {
+    const matchSearch = !search || (c.fullName||'').toLowerCase().includes(search) || (c.email||'').toLowerCase().includes(search);
+    const matchFilter = filter === 'all' || (filter === 'verified' && c.kycStatus === 'verified') || (filter === 'pending' && c.kycStatus === 'pending') || filter === 'active';
+    return matchSearch && matchFilter;
+  });
+  document.getElementById('clientsTable').innerHTML = list.map(c => `
+    <tr>
+      <td><div class="user-cell"><div class="user-avatar" style="background:${randomColor(c.fullName||c.email)}">${(c.fullName||c.email||'?')[0].toUpperCase()}</div><div><div class="user-name">${c.fullName||'—'}</div><div class="user-email">${c.email}</div></div></div></td>
+      <td><span>${flagEmoji(c.country)} ${c.country||'—'}</span></td>
+      <td class="mono" style="color:var(--green)">$${(c.balance||0).toFixed(2)}</td>
+      <td class="mono">$${(c.deposits||0).toFixed(2)}</td>
+      <td>${kycBadge(c.kycStatus)}</td>
+      <td class="mono">${c.trades||0}</td>
+      <td style="color:var(--t3);font-size:11px">${formatDate(c.joined||c.createdAt)}</td>
+      <td><div class="action-btns">
+        <button class="btn btn-ghost btn-sm" onclick="openBalanceModal('${c.id||c._id}','${c.fullName||c.email}',${c.balance||0})">Balance</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--green);border-color:var(--gbr)" onclick="verifyKYC('${c.id||c._id}')">KYC</button>
+        <button class="btn btn-red btn-sm" onclick="suspendClient('${c.id||c._id}')">Suspend</button>
+      </div></td>
+    </tr>`).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--t3);padding:20px">No clients found</td></tr>';
+}
+
+// ── KYC ───────────────────────────────────────────────────────
+function renderKYC() {
+  const pending = allClients.filter(c => c.kycStatus === 'pending');
+  const el = document.getElementById('kycQueue');
+  if (!pending.length) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--t3)">✅ No pending KYC submissions</div>';
+    return;
+  }
+  el.innerHTML = pending.map(c => `
+    <div class="kyc-card">
+      <div class="kyc-thumb">${(c.fullName||c.email||'?')[0].toUpperCase()}</div>
+      <div class="kyc-info">
+        <div class="kyc-name">${c.fullName||c.email}</div>
+        <div class="kyc-detail">${c.email} · ${flagEmoji(c.country)} ${c.country} · Submitted 14h ago</div>
+        <div style="margin-top:6px;display:flex;gap:8px;font-size:11px;color:var(--t3)">
+          <span>📄 National ID — uploaded</span>
+          <span>🤳 Selfie — uploaded</span>
+        </div>
+      </div>
+      <div class="kyc-actions">
+        <button class="btn btn-green btn-sm" onclick="approveKYC('${c.id||c._id}',this)">✓ Approve</button>
+        <button class="btn btn-red btn-sm" onclick="rejectKYC('${c.id||c._id}',this)">✗ Reject</button>
+        <button class="btn btn-ghost btn-sm" onclick="viewDocs('${c.id||c._id}')">View Docs</button>
+      </div>
+    </div>`).join('') + `
+    <div class="section-hdr" style="margin-top:20px"><h3>Recently Verified</h3></div>
+    ${allClients.filter(c=>c.kycStatus==='verified').slice(0,3).map(c=>`
+    <div class="kyc-card" style="opacity:.7">
+      <div class="kyc-thumb" style="background:var(--gbg)">✓</div>
+      <div class="kyc-info"><div class="kyc-name">${c.fullName||c.email}</div><div class="kyc-detail">${c.email} · Verified</div></div>
+      <span class="tag tag-green">Verified</span>
+    </div>`).join('')}`;
+}
+
+function approveKYC(id, btn) {
+  const c = allClients.find(x => (x.id||x._id) === id);
+  if (c) { c.kycStatus = 'verified'; renderKYC(); renderRecentClients(); showToast('✅ KYC Approved for ' + (c.fullName||c.email)); }
+}
+function rejectKYC(id, btn) {
+  const c = allClients.find(x => (x.id||x._id) === id);
+  if (c) { c.kycStatus = 'rejected'; renderKYC(); showToast('❌ KYC Rejected'); }
+}
+function viewDocs(id) { showToast('📄 Document viewer — connect to file storage'); }
+function verifyKYC(id) { const c = allClients.find(x => (x.id||x._id) === id); if(c){ c.kycStatus='verified'; renderClientsTable(); showToast('✅ KYC Approved'); } }
+function suspendClient(id) { showToast('⚠️ Client suspended (demo mode)'); }
+
+// ── DEPOSITS / WITHDRAWALS ────────────────────────────────────
+function renderDeposits() {
+  document.getElementById('depositsTable').innerHTML = FAKE_DEPS.map(d => `
+    <tr>
+      <td><div class="user-name">${d.client}</div><div class="user-email">${d.email}</div></td>
+      <td class="mono" style="color:var(--green);font-weight:700">$${d.amount}</td>
+      <td>${d.currency}</td>
+      <td class="mono" style="font-size:10px;color:var(--t3)">${d.hash}</td>
+      <td style="color:var(--t3);font-size:11px">${d.time}</td>
+      <td>${d.status==='approved'?'<span class="tag tag-green">Approved</span>':'<span class="tag tag-gold">Pending</span>'}</td>
+      <td>${d.status==='pending'?`<div class="action-btns"><button class="btn btn-green btn-sm" onclick="approveDeposit(this,'${d.client}',${d.amount})">Approve</button><button class="btn btn-red btn-sm" onclick="rejectDeposit(this)">Reject</button></div>`:'<span style="font-size:11px;color:var(--t3)">Done</span>'}</td>
+    </tr>`).join('');
+}
+function renderWithdrawals() {
+  document.getElementById('withdrawalsTable').innerHTML = FAKE_WDS.map(w => `
+    <tr>
+      <td><div class="user-name">${w.client}</div></td>
+      <td class="mono" style="color:var(--red);font-weight:700">$${w.amount}</td>
+      <td class="mono" style="font-size:10px;color:var(--t3)">${w.address}</td>
+      <td style="color:var(--t3);font-size:11px">${w.time}</td>
+      <td><span class="tag tag-gold">Pending</span></td>
+      <td><div class="action-btns">
+        <button class="btn btn-green btn-sm" onclick="processWD(this,'${w.client}',${w.amount})">Process</button>
+        <button class="btn btn-red btn-sm" onclick="rejectWD(this)">Reject</button>
+      </div></td>
+    </tr>`).join('');
+}
+function approveDeposit(btn, client, amount) {
+  btn.closest('td').innerHTML = '<span class="tag tag-green">Approved ✓</span>';
+  showToast(`💰 Deposit of $${amount} approved for ${client}`);
+}
+function rejectDeposit(btn) { btn.closest('td').innerHTML = '<span class="tag tag-red">Rejected</span>'; showToast('❌ Deposit rejected'); }
+function processWD(btn, client, amount) { btn.closest('td').innerHTML = '<span class="tag tag-green">Processed ✓</span>'; showToast(`📤 Withdrawal of $${amount} processed for ${client}`); }
+function rejectWD(btn) { btn.closest('td').innerHTML = '<span class="tag tag-red">Rejected</span>'; showToast('❌ Withdrawal rejected'); }
+
+// ── SUPPORT ───────────────────────────────────────────────────
+function renderSupport() {
+  const priorColor = {high:'var(--red)',medium:'var(--gold)',low:'var(--blue)'};
+  const statusBg = {open:'tag-red',pending:'tag-gold',resolved:'tag-green'};
+  document.getElementById('supportTickets').innerHTML = FAKE_TICKETS.map(t => `
+    <div class="ticket">
+      <div class="ticket-top">
+        <span class="ticket-id">${t.id}</span>
+        <div style="display:flex;gap:6px"><span class="tag ${statusBg[t.status]}">${t.status.toUpperCase()}</span>
+        <span class="tag" style="background:rgba(0,0,0,.2);color:${priorColor[t.priority]};border:1px solid ${priorColor[t.priority]}40">${t.priority.toUpperCase()}</span></div>
+      </div>
+      <div class="ticket-title">${t.title}</div>
+      <div class="ticket-preview">${t.preview}</div>
+      <div class="ticket-footer">
+        <span>👤 ${t.client}</span>
+        <span>🕐 ${t.time}</span>
+        <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="showToast('📨 Replying to ticket ${t.id}')">Reply</button>
+        ${t.status!=='resolved'?`<button class="btn btn-ghost btn-sm" style="color:var(--green);border-color:var(--gbr)" onclick="showToast('✅ Ticket ${t.id} resolved')">Resolve</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+// ── EMPLOYEES ─────────────────────────────────────────────────
+function renderEmployees() {
+  document.getElementById('employeeGrid').innerHTML = FAKE_EMPLOYEES.map(e => `
+    <div class="emp-card">
+      <div class="emp-avatar" style="background:linear-gradient(135deg,${e.color}44,${e.color}22);color:${e.color}">${e.avatar}</div>
+      <div class="emp-name">${e.name}</div>
+      <div class="emp-role">${e.role}</div>
+      <div class="emp-dept">${e.dept} · Since ${e.since}</div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px">
+        <span class="tag tag-blue" style="font-size:9px">Active</span>
+      </div>
+      <div class="emp-stats">
+        <div><div class="emp-stat-v">${e.tickets}</div><div class="emp-stat-l">Tickets</div></div>
+        <div><div class="emp-stat-v">98%</div><div class="emp-stat-l">Uptime</div></div>
+        <div><div class="emp-stat-v">⭐4.8</div><div class="emp-stat-l">Rating</div></div>
+      </div>
+    </div>`).join('');
+}
+function openAddEmployeeModal() { showToast('👤 Add Employee form — fully customisable'); }
+
+// ── LIVE TRADES ───────────────────────────────────────────────
+function renderLiveTrades() {
+  document.getElementById('openPosCnt').textContent = LIVE_TRADES.length;
+  document.getElementById('liveTradesTable').innerHTML = LIVE_TRADES.map(t => `
+    <tr>
+      <td class="user-name">${t.client}</td>
+      <td style="font-weight:700">${t.symbol}</td>
+      <td><span class="tag ${t.side==='BUY'?'tag-green':'tag-red'}">${t.side}</span></td>
+      <td class="mono">${t.lots}</td>
+      <td class="mono">${t.entry}</td>
+      <td class="mono">${t.current}</td>
+      <td class="mono ${t.pl>=0?'':''}"; style="color:${t.pl>=0?'var(--green)':'var(--red)'}">${t.pl>=0?'+':''}$${t.pl.toFixed(2)}</td>
+      <td class="mono">$${t.margin.toFixed(2)}</td>
+    </tr>`).join('');
+}
+
+// ── RISK ──────────────────────────────────────────────────────
+function renderRisk() {
+  const risks = [{name:'EUR/USD Exposure',val:42,color:'var(--green)'},{name:'BTC/USD Exposure',val:28,color:'var(--gold)'},{name:'Gold Exposure',val:18,color:'var(--blue)'},{name:'Indices Exposure',val:12,color:'var(--purple)'}];
+  document.getElementById('riskMeters').innerHTML = risks.map(r => `
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span>${r.name}</span><span style="font-weight:700;font-family:var(--mono);color:${r.color}">${r.val}%</span></div>
+      <div class="risk-meter"><div class="rm-fill" style="width:${r.val}%;background:${r.color}"></div></div>
+    </div>`).join('');
+  document.getElementById('riskAlerts').innerHTML = `
+    <div class="activity-item"><div class="act-icon" style="background:var(--goldbg)">⚠️</div><div class="act-text"><strong>Ahmed Khan</strong> approaching margin call — margin level at 95%</div><div class="act-time">5m ago</div></div>
+    <div class="activity-item"><div class="act-icon" style="background:var(--rbg)">🔴</div><div class="act-text"><strong>Large position</strong> opened: Karim Hassan 10 lots XAUUSD</div><div class="act-time">12m ago</div></div>
+    <div class="activity-item"><div class="act-icon" style="background:var(--bbg)">ℹ️</div><div class="act-text">Daily loss limit 70% reached on <strong>BTC/USD desk</strong></div><div class="act-time">1h ago</div></div>
+    <div class="activity-item"><div class="act-icon" style="background:var(--gbg)">✅</div><div class="act-text">All margin levels within safe parameters</div><div class="act-time">2h ago</div></div>`;
+}
+
+// ── COMPLIANCE ────────────────────────────────────────────────
+function renderCompliance() {
+  document.getElementById('amlAlerts').innerHTML = `
+    <div class="activity-item"><div class="act-icon" style="background:var(--goldbg)">⚠️</div><div class="act-text"><strong>Unusual activity:</strong> Client made 8 deposits in 24h totaling $12,000. AML flag raised.</div><div class="act-time">2h ago</div></div>
+    <div class="activity-item"><div class="act-icon" style="background:var(--gbg)">✅</div><div class="act-text">All withdrawal requests under $1,000 — cleared by automated screening</div><div class="act-time">4h ago</div></div>
+    <div class="activity-item"><div class="act-icon" style="background:var(--bbg)">ℹ️</div><div class="act-text">Monthly AML report generated and filed</div><div class="act-time">1d ago</div></div>`;
+  const checks = [
+    {item:'KYC procedures documented',done:true},{item:'AML policy updated 2025',done:true},
+    {item:'Client risk assessment',done:true},{item:'PEP screening active',done:true},
+    {item:'Sanctions list check',done:true},{item:'Annual compliance audit',done:false},
+    {item:'Staff AML training',done:false},{item:'Regulatory filing Q1',done:false},
+  ];
+  document.getElementById('complianceList').innerHTML = checks.map(c => `
+    <div class="activity-item" style="align-items:center">
+      <div style="font-size:14px">${c.done?'✅':'⏳'}</div>
+      <div class="act-text" style="color:${c.done?'var(--t1)':'var(--t3)'}">${c.item}</div>
+      <span class="tag ${c.done?'tag-green':'tag-gray'}">${c.done?'Done':'Pending'}</span>
+    </div>`).join('');
+}
+
+// ── IB ────────────────────────────────────────────────────────
+function renderIB() {
+  const ibs = [
+    {name:'FX Partners PK',clients:38,rate:'30%',earned:'$1,240',status:'active'},
+    {name:'Crypto Traders BD',clients:22,rate:'25%',earned:'$880',status:'active'},
+    {name:'South Asia FX',clients:45,rate:'35%',earned:'$1,680',status:'active'},
+    {name:'Lanka Trade Pro',clients:12,rate:'20%',earned:'$320',status:'paused'},
+    {name:'Himalayan IB',clients:18,rate:'25%',earned:'$540',status:'active'},
+  ];
+  document.getElementById('ibTable').innerHTML = ibs.map(i => `
+    <tr>
+      <td class="user-name">${i.name}</td>
+      <td class="mono">${i.clients}</td>
+      <td class="mono" style="color:var(--gold)">${i.rate}</td>
+      <td class="mono" style="color:var(--green)">${i.earned}</td>
+      <td><span class="tag ${i.status==='active'?'tag-green':'tag-gray'}">${i.status.toUpperCase()}</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="showToast('📋 IB details for ${i.name}')">Details</button></td>
+    </tr>`).join('');
+}
+
+// ── ACCOUNTS ─────────────────────────────────────────────────
+function renderAccounts() {
+  document.getElementById('accountsTable').innerHTML = allClients.map((c,i) => `
+    <tr>
+      <td class="mono" style="color:var(--blue);font-size:11px">VLX-${(c.id||String(i)).slice(-6).toUpperCase()}</td>
+      <td><div class="user-name">${c.fullName||c.email}</div><div class="user-email">${c.email}</div></td>
+      <td><span class="tag tag-blue">Standard</span></td>
+      <td class="mono" style="color:var(--green)">$${(c.balance||0).toFixed(2)}</td>
+      <td class="mono">$0.00</td>
+      <td class="mono" style="color:var(--green)">$0.00</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="openBalanceModal('${c.id||c._id}','${c.fullName||c.email}',${c.balance||0})">Adjust</button></td>
+    </tr>`).join('');
+}
+
+// ── TRANSACTIONS ──────────────────────────────────────────────
+function renderTransactions() {
+  const txns = [
+    {id:'TX-001',client:'Ahmed Khan',type:'deposit',amount:500,currency:'USDT',status:'completed',date:'2025-05-22'},
+    {id:'TX-002',client:'Karim Hassan',type:'deposit',amount:2000,currency:'BTC',status:'completed',date:'2025-05-21'},
+    {id:'TX-003',client:'Ali Raza',type:'withdrawal',amount:800,currency:'USDT',status:'pending',date:'2025-05-22'},
+    {id:'TX-004',client:'Ram Sharma',type:'deposit',amount:250,currency:'ETH',status:'completed',date:'2025-05-20'},
+    {id:'TX-005',client:'Rafiq Mohammed',type:'withdrawal',amount:400,currency:'BTC',status:'pending',date:'2025-05-22'},
+  ];
+  document.getElementById('transactionsTable').innerHTML = txns.map(t => `
+    <tr>
+      <td class="mono" style="color:var(--blue);font-size:11px">${t.id}</td>
+      <td>${t.client}</td>
+      <td><span class="tag ${t.type==='deposit'?'tag-green':'tag-red'}">${t.type.toUpperCase()}</span></td>
+      <td class="mono" style="color:${t.type==='deposit'?'var(--green)':'var(--red)'}">${t.type==='deposit'?'+':'-'}$${t.amount}</td>
+      <td>${t.currency}</td>
+      <td><span class="tag ${t.status==='completed'?'tag-green':'tag-gold'}">${t.status.toUpperCase()}</span></td>
+      <td style="color:var(--t3);font-size:11px">${t.date}</td>
+    </tr>`).join('');
+}
+
+// ── ANALYTICS ─────────────────────────────────────────────────
+function renderAnalytics() {
+  const countries = [{c:'Pakistan',users:182,pct:53},{c:'Bangladesh',users:94,pct:27},{c:'Sri Lanka',users:41,pct:12},{c:'Nepal',users:25,pct:8}];
+  document.getElementById('countryStats').innerHTML = countries.map(c => `
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>${flagEmoji(c.c)} ${c.c}</span><span class="mono" style="color:var(--blue)">${c.users} (${c.pct}%)</span></div>
+      <div class="risk-meter"><div class="rm-fill" style="width:${c.pct}%;background:var(--blue)"></div></div>
+    </div>`).join('');
+  document.getElementById('deviceStats').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;padding:10px;background:var(--bg3);border-radius:8px"><span>📱 Mobile</span><span style="font-weight:700;color:var(--green)">62%</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;padding:10px;background:var(--bg3);border-radius:8px"><span>💻 Desktop</span><span style="font-weight:700;color:var(--blue)">31%</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;padding:10px;background:var(--bg3);border-radius:8px"><span>📟 Tablet</span><span style="font-weight:700;color:var(--gold)">7%</span></div>
+    </div>`;
+}
+
+// ── ACTIVITY FEED ─────────────────────────────────────────────
+const ACTIVITIES = [
+  {icon:'💰',bg:'var(--gbg)',text:'<strong>Ahmed Khan</strong> deposited $500 USDT',time:'2m ago'},
+  {icon:'📤',bg:'var(--rbg)',text:'<strong>Ali Raza</strong> requested withdrawal of $800',time:'5m ago'},
+  {icon:'🪪',bg:'var(--goldbg)',text:'<strong>Sandun Perera</strong> submitted KYC documents',time:'12m ago'},
+  {icon:'👤',bg:'var(--bbg)',text:'<strong>New registration:</strong> Fatima Ali from Pakistan',time:'28m ago'},
+  {icon:'⚡',bg:'var(--gbg)',text:'<strong>Karim Hassan</strong> opened 1 lot XAUUSD BUY',time:'34m ago'},
+  {icon:'✅',bg:'var(--gbg)',text:'<strong>Ram Sharma</strong> KYC approved',time:'1h ago'},
+  {icon:'💰',bg:'var(--gbg)',text:'<strong>Rafiq Mohammed</strong> deposited $1,000 BTC',time:'2h ago'},
+];
+function renderActivity() {
+  document.getElementById('activityFeed').innerHTML = ACTIVITIES.map(a => `
+    <div class="activity-item">
+      <div class="act-icon" style="background:${a.bg}">${a.icon}</div>
+      <div class="act-text">${a.text}</div>
+      <div class="act-time">${a.time}</div>
+    </div>`).join('');
+}
+function refreshActivity() { renderActivity(); showToast('🔄 Activity refreshed'); }
+
+// ── BALANCE MODAL ─────────────────────────────────────────────
+function openBalanceModal(id, name, balance) {
+  selectedClientId = id;
+  document.getElementById('balModal-name').textContent = name;
+  document.getElementById('balModal-bal').textContent = '$' + parseFloat(balance).toFixed(2);
+  document.getElementById('balanceModal').classList.add('open');
+}
+async function applyBalanceAdjustment() {
+  const type = document.getElementById('balModal-type').value;
+  const amount = parseFloat(document.getElementById('balModal-amount').value) || 0;
+  const note = document.getElementById('balModal-note').value;
+  if (!amount) { showToast('⚠️ Enter an amount'); return; }
+  try {
+    const r = await fetch(`/api/admin/user/${selectedClientId}/balance`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'admin-key': ADMIN_KEY },
+      body: JSON.stringify({ amount: type === 'debit' ? -amount : amount })
+    });
+    if (r.ok) { const d = await r.json(); showToast(`✅ Balance updated to $${d.balance.toFixed(2)}`); }
+    else showToast('✅ Balance adjusted (demo mode)');
+  } catch { showToast('✅ Balance adjusted (demo mode)'); }
+  closeModal('balanceModal');
+  await loadData();
+}
+
+// ── ADD CLIENT ────────────────────────────────────────────────
+function openAddClientModal() { document.getElementById('addClientModal').classList.add('open'); }
+async function addClientManual() {
+  const name = document.getElementById('nc-name').value.trim();
+  const email = document.getElementById('nc-email').value.trim();
+  const country = document.getElementById('nc-country').value;
+  const balance = parseFloat(document.getElementById('nc-balance').value) || 0;
+  if (!name || !email) { showToast('⚠️ Name and email required'); return; }
+  const newClient = { id: 'c' + Date.now(), fullName: name, email, country, balance, deposits: balance, kycStatus: document.getElementById('nc-kyc').value, trades: 0, joined: new Date().toISOString().split('T')[0] };
+  allClients.unshift(newClient);
+  closeModal('addClientModal');
+  renderClientsTable();
+  renderRecentClients();
+  document.getElementById('totalClients').textContent = allClients.length;
+  document.getElementById('clientCountBadge').textContent = allClients.length;
+  showToast('✅ Client added: ' + name);
+}
+
+// ── UTILS ─────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function exportClients() { showToast('📥 CSV export started (demo mode)'); }
+function globalSearchFn(q) { if (q.length > 1) { showPanel('clients', null); document.getElementById('clientSearchInput').value = q; renderClientsTable(); } }
+function kycBadge(s) { const map = { verified: 'tag-green', pending: 'tag-gold', unverified: 'tag-gray', rejected: 'tag-red' }; const labels = { verified: '✓ Verified', pending: '⏳ Pending', unverified: 'Unverified', rejected: '✗ Rejected' }; return `<span class="tag ${map[s]||'tag-gray'}">${labels[s]||s}</span>`; }
+function flagEmoji(c) { const f = { Pakistan: '🇵🇰', Bangladesh: '🇧🇩', 'Sri Lanka': '🇱🇰', Nepal: '🇳🇵', Bhutan: '🇧🇹', Maldives: '🇲🇻' }; return f[c] || '🌍'; }
+function randomColor(str) { const colors = ['#4B8BF5', '#00E5B0', '#FFB547', '#8B5CF6', '#FF6B35', '#FF3D5A']; let h = 0; for (let c of (str||'')) h = c.charCodeAt(0) + ((h << 5) - h); return colors[Math.abs(h) % colors.length]; }
+function formatDate(d) { if (!d) return '—'; const dt = new Date(d); return isNaN(dt) ? d : dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }); }
+
+let toastTimer;
+function showToast(msg) {
+  let t = document.getElementById('admin-toast');
+  if (!t) { t = document.createElement('div'); t.id = 'admin-toast'; t.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--bg3);border:1px solid var(--b2);border-radius:10px;padding:12px 18px;font-size:13px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.5);transform:translateX(120%);transition:transform .3s cubic-bezier(.34,1.56,.64,1)'; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.style.transform = 'translateX(0)';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.style.transform = 'translateX(120%)'; }, 3500);
+}
+
+// Close modals on backdrop
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(o => o.classList.remove('open')); });
+
+// ── INIT ──────────────────────────────────────────────────────
+loadData();
+// Auto-refresh live data
+setInterval(() => { if (document.getElementById('panel-trading').classList.contains('active')) renderLiveTrades(); }, 3000);
+setInterval(renderActivity, 30000);
+</script>
+</body>
+</html>
