@@ -109,8 +109,8 @@ a{text-decoration:none;color:inherit}
 .tf.on,.tf:hover{background:var(--bg3);color:var(--t1)}
 
 /* CHART */
-#chartBox{flex:1;min-height:300px;position:relative;overflow:hidden}
-#tv_chart{position:absolute;top:0;left:0;right:0;bottom:0;width:100%;height:100%}
+#chartBox{flex:1;min-height:0;position:relative;overflow:hidden;display:flex;flex-direction:column}
+#tv_chart{width:100%;height:100%;flex:1;min-height:0}
 .chart-spinner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;background:var(--bg0)}
 .chart-spinner .spin{width:24px;height:24px;border:2px solid var(--bg3);border-top-color:var(--yellow);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -310,7 +310,7 @@ tr:hover td{background:var(--bg2)}
   .ch-stats{display:none}
   .tfs{gap:1px}
   .tf{padding:2px 5px;font-size:9px}
-  #chartBox{flex:1;min-height:180px!important}
+  #chartBox{flex:1;min-height:200px}
   .bp{flex-shrink:0}
   .bp-body{height:110px}
   .bpt{padding:6px 8px;font-size:10px}
@@ -419,7 +419,7 @@ tr:hover td{background:var(--bg2)}
     </div>
   </div>
   <!-- Chart -->
-  <div id="chartBox">
+  <div id="chartBox" style="flex:1;position:relative;overflow:hidden;min-height:300px">
     <div class="chart-spinner" id="chartSpinner">
       <div class="spin"></div><p>Loading chart...</p>
     </div>
@@ -1204,32 +1204,92 @@ function renderSignals(){
 }
 
 // ── CHART ─────────────────────────────────────────────
-function loadChart(sym,tf){
-  const spin=document.getElementById('chartSpinner');
-  const box=document.getElementById('tv_chart');
-  if(spin) spin.style.display='flex';
-  if(box) box.innerHTML='';
-  const doLoad=()=>{
-    if(spin) spin.style.display='none';
-    const cb=document.getElementById('chartBox');
-    if(cb && cb.offsetHeight<50){cb.style.minHeight='300px';}
-    new TradingView.widget({
-      autosize:true,symbol:TV_MAP[sym]||'FX:EURUSD',
-      interval:tf==='D'?'1D':tf==='W'?'1W':tf,
-      timezone:'Etc/UTC',theme:'dark',style:'1',locale:'en',
-      toolbar_bg:'#181a20',enable_publishing:false,allow_symbol_change:false,
-      container_id:'tv_chart',backgroundColor:'#0b0e11',
-      gridColor:'rgba(43,47,54,0.5)',
-      studies:['RSI@tv-basicstudies','MACD@tv-basicstudies'],
-      hide_top_toolbar:false,save_image:false,
-      overrides:{'paneProperties.background':'#0b0e11','paneProperties.vertGridProperties.color':'rgba(43,47,54,0.5)','paneProperties.horzGridProperties.color':'rgba(43,47,54,0.5)','scalesProperties.textColor':'#848e9c'}
-    });
+let tvWidget = null;
+function loadChart(sym, tf) {
+  const spinner = document.getElementById('chartSpinner');
+  const container = document.getElementById('tv_chart');
+  
+  // Show spinner, clear old chart
+  if (spinner) spinner.style.display = 'flex';
+  if (container) container.innerHTML = '';
+  if (tvWidget) { try { tvWidget.remove(); } catch {} tvWidget = null; }
+
+  const createWidget = () => {
+    if (spinner) spinner.style.display = 'none';
+    
+    // Ensure container has real pixel dimensions
+    const chartBox = document.getElementById('chartBox');
+    const h = chartBox ? chartBox.getBoundingClientRect().height : 0;
+    if (container) {
+      container.style.width = '100%';
+      container.style.height = h > 50 ? h + 'px' : '400px';
+    }
+
+    // Safety: hide spinner after 5s regardless of widget status
+    setTimeout(() => {
+      const sp = document.getElementById('chartSpinner');
+      if (sp) sp.style.display = 'none';
+    }, 5000);
+
+    try {
+      tvWidget = new TradingView.widget({
+        autosize: true,
+        symbol: TV_MAP[sym] || 'FX:EURUSD',
+        interval: tf === 'D' ? '1D' : tf === 'W' ? '1W' : tf,
+        timezone: 'Etc/UTC',
+        theme: 'dark',
+        style: '1',
+        locale: 'en',
+        toolbar_bg: '#181a20',
+        enable_publishing: false,
+        allow_symbol_change: false,
+        container_id: 'tv_chart',
+        backgroundColor: '#0b0e11',
+        gridColor: 'rgba(43,47,54,0.3)',
+        studies: ['RSI@tv-basicstudies', 'MACD@tv-basicstudies'],
+        hide_top_toolbar: false,
+        hide_legend: false,
+        save_image: false,
+        withdateranges: true,
+        overrides: {
+          'paneProperties.background': '#0b0e11',
+          'paneProperties.backgroundType': 'solid',
+          'paneProperties.vertGridProperties.color': 'rgba(43,47,54,0.4)',
+          'paneProperties.horzGridProperties.color': 'rgba(43,47,54,0.4)',
+          'scalesProperties.textColor': '#848e9c',
+          'scalesProperties.backgroundColor': '#0b0e11',
+        }
+      });
+    } catch(e) {
+      console.error('TradingView widget error:', e);
+      if (container) container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#848e9c;font-size:14px">Chart unavailable</div>';
+    }
   };
-  if(typeof TradingView!=='undefined'){doLoad();return;}
-  const sc=document.createElement('script');sc.src='https://s3.tradingview.com/tv.js';
-  sc.onload=doLoad;
-  sc.onerror=()=>{if(spin)spin.innerHTML='<p style="color:var(--t3);font-size:12px">Chart requires internet</p>';};
-  document.head.appendChild(sc);
+
+  if (typeof TradingView !== 'undefined') {
+    createWidget();
+  } else {
+    // Load TradingView script
+    const existing = document.querySelector('script[src*="tradingview.com"]');
+    if (existing) {
+      // Script already loading - wait for it
+      let attempts = 0;
+      const wait = setInterval(() => {
+        attempts++;
+        if (typeof TradingView !== 'undefined') { clearInterval(wait); createWidget(); }
+        else if (attempts > 30) { clearInterval(wait); if(spinner) spinner.innerHTML='<p style="color:#848e9c;font-size:12px">Chart loading failed. Reload the page.</p>'; }
+      }, 200);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://s3.tradingview.com/tv.js';
+    script.async = true;
+    script.onload = createWidget;
+    script.onerror = () => {
+      if (spinner) spinner.innerHTML = '<p style="color:#848e9c;font-size:12px;text-align:center">Chart requires internet connection.<br>Please check your network.</p>';
+    };
+    document.head.appendChild(script);
+  }
 }
 function setTF(tf,el){document.querySelectorAll('.tf').forEach(b=>b.classList.remove('on'));if(el)el.classList.add('on');currentTF=tf;loadChart(currentSym,tf);}
 
@@ -1409,10 +1469,28 @@ document.addEventListener('keydown',e=>{
 function doLogout(){localStorage.clear();location.href='/';}
 
 // ── INIT ──────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded',()=>{
-  renderSymList();renderTickers();updateChartHeader();updateOrderForm();calcMargin();
-  loadUser();loadPositions();loadChart('EURUSD','60');
-  setTimeout(initSocket,300);
+document.addEventListener('DOMContentLoaded', () => {
+  renderSymList();
+  renderTickers();
+  updateChartHeader();
+  updateOrderForm();
+  calcMargin();
+  loadUser();
+  loadPositions();
+
+  // Connect socket immediately
+  setTimeout(initSocket, 200);
+
+  // Load chart AFTER a brief delay to ensure layout is fully rendered
+  // requestAnimationFrame ensures DOM is painted before TradingView measures heights
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      loadChart('EURUSD', '60');
+    }, 100);
+  });
+
+  // Start fetching real prices immediately
+  fetchBrowserPrices();
 });
 </script>
 
