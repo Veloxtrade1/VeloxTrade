@@ -91,7 +91,7 @@ a{text-decoration:none;color:inherit}
 .si-c{font-size:9px;font-family:var(--mono)}
 
 /* ── CENTER ── */
-.center{display:flex;flex-direction:column;overflow:hidden;background:var(--bg0);min-height:0;height:100%}
+.center{display:flex;flex-direction:column;background:var(--bg0);min-height:0;height:100%}
 
 /* CHART HEADER */
 .chart-header{background:var(--bg1);border-bottom:1px solid var(--border);padding:0 14px;height:40px;display:flex;align-items:center;gap:16px;flex-shrink:0}
@@ -110,7 +110,7 @@ a{text-decoration:none;color:inherit}
 
 /* CHART */
 #chartBox{flex:1;min-height:350px;position:relative}
-#tv_chart{width:100%;height:100%;flex:1;min-height:0}
+#tv_chart{position:relative;display:block}
 @keyframes spin{to{transform:rotate(360deg)}}
 .chart-spinner p{font-size:11px;color:var(--t3)}
 
@@ -299,7 +299,7 @@ tr:hover td{background:var(--bg2)}
   .tn-logout{display:none}
   .lsb{display:none!important}
   .rp{display:none!important}
-  .center{position:fixed;top:48px;left:0;right:0;bottom:56px;display:flex;flex-direction:column;overflow:hidden}
+  .center{position:fixed;top:48px;left:0;right:0;bottom:56px;display:flex;flex-direction:column}
   .demo-banner{font-size:10px;padding:3px 10px}
   .chart-header{height:36px;padding:0 8px;gap:6px;overflow:hidden}
   .ch-sym{font-size:12px}
@@ -1251,7 +1251,10 @@ function loadChart(sym, tf) {
     const hdrH = 40;   // chart header
     const bpH  = 196;  // bottom panel (tabs + table)
     const h = Math.max(window.innerHeight - topH - hdrH - bpH, 300);
-    const w = container.parentElement ? container.parentElement.offsetWidth : (window.innerWidth - 220 - 300);
+    // Calculate width reliably - don't use offsetWidth (can be 0 during init)
+    const sidebarW = window.innerWidth > 1024 ? 220 : 0;
+    const rightW   = window.innerWidth > 1024 ? 300 : 0;
+    const w = Math.max(window.innerWidth - sidebarW - rightW, 400);
 
     container.style.width  = w + 'px';
     container.style.height = h + 'px';
@@ -1498,12 +1501,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Connect socket immediately
   setTimeout(initSocket, 200);
 
-  // Load chart after browser paints layout (2 frames = guaranteed)
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      loadChart('EURUSD', '60');
-    });
-  });
+  // Load chart after layout fully settles (100ms = safe on all browsers)
+  setTimeout(() => loadChart('EURUSD', '60'), 150);
 
   // Reload chart on window resize
   let resizeTimer;
