@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Contact Us — Velox Trading Support</title>
+<meta name="description" content="Get help from Velox support team. Live chat, email, WhatsApp and ticket support available 24/7.">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#080C14;--bg2:#0D1220;--bg3:#121829;--b1:#1E2A42;--b2:#243354;--t1:#F0F4FF;--t2:#A8B4CC;--t3:#637089;--green:#00E5B0;--gbg:rgba(0,229,176,.1);--gbr:rgba(0,229,176,.25);--red:#FF3D5A;--blue:#4B8BF5;--bbg:rgba(75,139,245,.12);--bbr:rgba(75,139,245,.3);--gold:#FFB547;--font:'Space Grotesk',sans-serif}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100vh}
+a{text-decoration:none;color:inherit}
+.nav{background:var(--bg2);border-bottom:1px solid var(--b1);padding:0 24px;height:60px;display:flex;align-items:center;gap:24px}
+.nav-logo{font-size:20px;font-weight:800;display:flex;align-items:center;gap:8px}
+.logo-box{width:30px;height:30px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-box svg{width:16px;height:16px;fill:#fff}
+.logo-text span{color:var(--blue)}
+.nav-right{margin-left:auto;display:flex;gap:8px}
+.btn{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:var(--font);transition:.2s;text-decoration:none;display:inline-block}
+.btn-ghost{background:none;border:1.5px solid var(--b1);color:var(--t2)}.btn-ghost:hover{border-color:var(--blue);color:var(--blue)}
+.btn-green{background:var(--green);color:#000}.btn-green:hover{background:#00c49a}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:#3a7ae8}
+.container{max-width:1100px;margin:0 auto;padding:0 24px}
+
+/* HERO */
+.hero{padding:64px 0;background:linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%);border-bottom:1px solid var(--b1);text-align:center}
+.hero h1{font-size:clamp(28px,4vw,44px);font-weight:900;letter-spacing:-1.5px;margin-bottom:10px}
+.hero p{font-size:16px;color:var(--t2);max-width:480px;margin:0 auto 32px}
+.response-bar{display:flex;justify-content:center;gap:24px;flex-wrap:wrap}
+.rb{background:var(--bg3);border:1px solid var(--b1);border-radius:10px;padding:12px 20px;text-align:center;min-width:120px}
+.rb-v{font-size:18px;font-weight:800;margin-bottom:2px}
+.rb-l{font-size:10px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+
+/* CHANNELS */
+.channels{padding:56px 0}
+.ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:48px}
+.ch-card{background:var(--bg2);border:1px solid var(--b1);border-radius:16px;padding:24px;text-align:center;transition:.3s;cursor:pointer}
+.ch-card:hover{border-color:var(--b2);transform:translateY(-4px)}
+.ch-icon{font-size:36px;margin-bottom:14px}
+.ch-title{font-size:15px;font-weight:700;margin-bottom:6px}
+.ch-desc{font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:14px}
+.ch-badge{display:inline-block;padding:4px 10px;border-radius:100px;font-size:10px;font-weight:700}
+.cb-live{background:var(--gbg);color:var(--green);border:1px solid var(--gbr)}
+.cb-fast{background:var(--bbg);color:var(--blue);border:1px solid var(--bbr)}
+.cb-std{background:rgba(99,112,137,.15);color:var(--t3)}
+
+/* CONTACT FORM */
+.form-section{padding:0 0 64px}
+.fs-grid{display:grid;grid-template-columns:1fr 380px;gap:32px;align-items:flex-start}
+.form-card{background:var(--bg2);border:1px solid var(--b1);border-radius:20px;padding:32px}
+.fc-title{font-size:20px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px}
+.fc-sub{font-size:13px;color:var(--t2);margin-bottom:24px}
+.fg{margin-bottom:14px}
+.fg-l{display:block;font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.fg-i{width:100%;background:var(--bg3);border:1px solid var(--b1);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--t1);font-family:var(--font);outline:none;transition:.2s}
+.fg-i:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--bbg)}
+.fg-ta{width:100%;background:var(--bg3);border:1px solid var(--b1);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--t1);font-family:var(--font);outline:none;resize:vertical;min-height:120px;transition:.2s}
+.fg-ta:focus{border-color:var(--blue)}
+.fg-sel{width:100%;background:var(--bg3);border:1px solid var(--b1);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--t1);font-family:var(--font);outline:none}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sub-btn{width:100%;padding:13px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;background:var(--blue);color:#fff;border:none;font-family:var(--font);margin-top:8px;transition:.2s}
+.sub-btn:hover{background:#3a7ae8}
+.form-msg{font-size:12px;text-align:center;margin-top:10px;min-height:14px}
+.form-success{background:var(--gbg);border:1px solid var(--gbr);border-radius:10px;padding:14px;text-align:center;font-size:13px;color:var(--green);display:none;margin-top:10px}
+
+/* SIDEBAR INFO */
+.info-sidebar{display:flex;flex-direction:column;gap:14px}
+.info-card{background:var(--bg2);border:1px solid var(--b1);border-radius:14px;padding:18px}
+.info-card h4{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.info-card h4 svg{width:14px;height:14px;fill:var(--blue)}
+.info-row{display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.info-row:last-child{border:none}
+.ir-l{color:var(--t3)}.ir-v{font-weight:600}
+.faq-mini{background:var(--bg2);border:1px solid var(--b1);border-radius:14px;padding:18px}
+.faqm-title{font-size:13px;font-weight:700;margin-bottom:12px}
+.faqm-item{border-bottom:1px solid rgba(255,255,255,.04)}
+.faqm-q{padding:10px 0;font-size:12px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.faqm-q svg{width:14px;height:14px;fill:var(--t3);transition:.2s;flex-shrink:0}
+.faqm-q.open svg{transform:rotate(180deg);fill:var(--blue)}
+.faqm-a{font-size:11px;color:var(--t2);line-height:1.7;padding-bottom:10px;display:none}
+.faqm-a.open{display:block}
+
+/* LIVE CHAT WIDGET */
+.chat-fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 24px rgba(0,229,176,.4);transition:.3s;z-index:900}
+.chat-fab:hover{transform:scale(1.1)}
+.chat-fab svg{width:26px;height:26px;fill:#000}
+.chat-bubble{position:fixed;bottom:90px;right:24px;background:var(--bg2);border:1px solid var(--b1);border-radius:16px;width:300px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.5);z-index:900;display:none;animation:slideUpChat .3s ease}
+@keyframes slideUpChat{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.chat-bubble.open{display:block}
+.chat-head{background:var(--blue);padding:14px;display:flex;justify-content:space-between;align-items:center}
+.ch-name{font-size:13px;font-weight:700}
+.ch-status{font-size:10px;color:rgba(255,255,255,.8)}
+.ch-close{cursor:pointer;font-size:16px;color:rgba(255,255,255,.8)}
+.chat-msgs{height:180px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:80%;padding:8px 12px;border-radius:12px;font-size:12px;line-height:1.5}
+.msg-bot{background:var(--bg3);color:var(--t2);align-self:flex-start;border-radius:4px 12px 12px 12px}
+.msg-user{background:var(--blue);color:#fff;align-self:flex-end;border-radius:12px 4px 12px 12px}
+.chat-input{display:flex;padding:10px;gap:8px;border-top:1px solid var(--b1)}
+.chat-inp{flex:1;background:var(--bg3);border:1px solid var(--b1);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--t1);font-family:var(--font);outline:none}
+.chat-send{background:var(--blue);border:none;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.chat-send svg{width:14px;height:14px;fill:#fff}
+.online-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;animation:pulse2 2s infinite}
+@keyframes pulse2{0%,100%{opacity:1}50%{opacity:.5}}
+
+@media(max-width:900px){.fs-grid{grid-template-columns:1fr}.ch-grid{grid-template-columns:1fr 1fr}.form-row{grid-template-columns:1fr}.info-sidebar{display:none}}
+@media(max-width:600px){.ch-grid{grid-template-columns:1fr}.response-bar{gap:10px}}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="../index.html" class="nav-logo">
+    <div class="logo-box"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+    <span class="logo-text">Vel<span>ox</span></span>
+  </a>
+  <div style="flex:1"></div>
+  <div class="nav-right">
+    <a href="../index.html" class="btn btn-ghost">← Home</a>
+    <a href="../dashboard.html" class="btn btn-green">Dashboard</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="container">
+    <div style="font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px">Support Center</div>
+    <h1>How can we help?</h1>
+    <p>Our support team is available 24/7. Average first response time under 2 minutes via live chat.</p>
+    <div class="response-bar">
+      <div class="rb"><div class="rb-v" style="color:var(--green)">&lt;2 min</div><div class="rb-l">Live chat</div></div>
+      <div class="rb"><div class="rb-v">&lt;4h</div><div class="rb-l">Email</div></div>
+      <div class="rb"><div class="rb-v">24/7</div><div class="rb-l">Available</div></div>
+      <div class="rb"><div class="rb-v" style="color:var(--blue)">7</div><div class="rb-l">Languages</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CHANNELS -->
+<div class="channels">
+  <div class="container">
+    <div class="ch-grid">
+      <div class="ch-card" onclick="openChat()">
+        <div class="ch-icon">💬</div>
+        <div class="ch-title">Live Chat</div>
+        <div class="ch-desc">Instant support from our team. Chat with a real agent right now.</div>
+        <span class="ch-badge cb-live"><span class="online-dot"></span>Online Now</span>
+      </div>
+      <div class="ch-card" onclick="window.open('https://wa.me/1234567890')">
+        <div class="ch-icon">📱</div>
+        <div class="ch-title">WhatsApp</div>
+        <div class="ch-desc">Message us on WhatsApp for quick support on your phone.</div>
+        <span class="ch-badge cb-fast">Usually &lt;5 min</span>
+      </div>
+      <div class="ch-card" onclick="window.location.href='mailto:support@veloxtrade.com'">
+        <div class="ch-icon">📧</div>
+        <div class="ch-title">Email Support</div>
+        <div class="ch-desc">Send a detailed message. We respond to all emails within 4 hours.</div>
+        <span class="ch-badge cb-std">support@veloxtrade.com</span>
+      </div>
+      <div class="ch-card" onclick="document.getElementById('contactForm').scrollIntoView({behavior:'smooth'})">
+        <div class="ch-icon">📋</div>
+        <div class="ch-title">Support Ticket</div>
+        <div class="ch-desc">Submit a formal support request with attachments for complex issues.</div>
+        <span class="ch-badge cb-std">4-24 hour response</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT FORM -->
+<div class="form-section" id="contactForm">
+  <div class="container">
+    <div class="fs-grid">
+      <div class="form-card">
+        <div class="fc-title">Submit a Ticket</div>
+        <div class="fc-sub">Fill in the form and our team will get back to you within 4 hours.</div>
+        <div class="form-row">
+          <div class="fg"><label class="fg-l">Full Name</label><input class="fg-i" type="text" id="cf-name" placeholder="John Smith" required></div>
+          <div class="fg"><label class="fg-l">Email Address</label><input class="fg-i" type="email" id="cf-email" placeholder="john@example.com" required></div>
+        </div>
+        <div class="fg">
+          <label class="fg-l">Department</label>
+          <select class="fg-sel" id="cf-dept">
+            <option value="">Select department...</option>
+            <option value="deposits">Deposits & Payments</option>
+            <option value="withdrawals">Withdrawals</option>
+            <option value="kyc">KYC Verification</option>
+            <option value="trading">Trading Issues</option>
+            <option value="technical">Technical Support</option>
+            <option value="account">Account Management</option>
+            <option value="general">General Inquiry</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fg-l">Priority</label>
+          <select class="fg-sel" id="cf-priority">
+            <option>Normal</option>
+            <option>High — funds at risk</option>
+            <option>Urgent — account locked</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fg-l">Subject</label><input class="fg-i" type="text" id="cf-subject" placeholder="Brief description of your issue"></div>
+        <div class="fg"><label class="fg-l">Message</label><textarea class="fg-ta" id="cf-message" placeholder="Please describe your issue in detail. Include any relevant account information, transaction IDs, or screenshots."></textarea></div>
+        <button class="sub-btn" onclick="submitTicket()">Submit Support Ticket</button>
+        <div class="form-msg" id="cfMsg"></div>
+        <div class="form-success" id="cfSuccess">
+          ✅ Your ticket has been submitted successfully! Ticket ID: <strong id="ticketId"></strong><br>
+          You'll receive a confirmation email within a few minutes.
+        </div>
+      </div>
+
+      <div class="info-sidebar">
+        <div class="info-card">
+          <h4><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>Support Hours</h4>
+          <div class="info-row"><span class="ir-l">Live Chat</span><span class="ir-v" style="color:var(--green)">24/7 Available</span></div>
+          <div class="info-row"><span class="ir-l">Email Support</span><span class="ir-v">24/7 (reply &lt;4h)</span></div>
+          <div class="info-row"><span class="ir-l">Phone (VIP)</span><span class="ir-v">Mon–Fri 9am–6pm</span></div>
+          <div class="info-row"><span class="ir-l">Timezone</span><span class="ir-v">GMT+0</span></div>
+        </div>
+        <div class="info-card">
+          <h4><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>Contact Info</h4>
+          <div class="info-row"><span class="ir-l">Support Email</span><span class="ir-v">support@veloxtrade.com</span></div>
+          <div class="info-row"><span class="ir-l">Compliance</span><span class="ir-v">compliance@veloxtrade.com</span></div>
+          <div class="info-row"><span class="ir-l">Partnerships</span><span class="ir-v">ib@veloxtrade.com</span></div>
+          <div class="info-row"><span class="ir-l">Media</span><span class="ir-v">media@veloxtrade.com</span></div>
+        </div>
+        <div class="faq-mini">
+          <div class="faqm-title">Quick Answers</div>
+          <div class="faqm-item">
+            <div class="faqm-q" onclick="toggleFAQ(this)">How long do deposits take? <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div>
+            <div class="faqm-a">BTC takes ~1 hour, USDT is instant, ETH takes ~30 minutes. After blockchain confirmation, balance is credited immediately.</div>
+          </div>
+          <div class="faqm-item">
+            <div class="faqm-q" onclick="toggleFAQ(this)">My withdrawal is pending — when? <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div>
+            <div class="faqm-a">Withdrawals are processed within 24 hours during business days. KYC verification is required before your first withdrawal.</div>
+          </div>
+          <div class="faqm-item">
+            <div class="faqm-q" onclick="toggleFAQ(this)">I can't log into my account <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div>
+            <div class="faqm-a">Try resetting your password using the "Forgot Password" link on the login page. If you still can't access, contact us with your registered email.</div>
+          </div>
+          <div class="faqm-item">
+            <div class="faqm-q" onclick="toggleFAQ(this)">KYC documents rejected — what now? <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div>
+            <div class="faqm-a">Re-submit with clearer images ensuring all corners are visible and text is legible. Check the rejection email for specific reasons.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LIVE CHAT FAB -->
+<div class="chat-fab" onclick="openChat()" id="chatFab">
+  <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+</div>
+
+<!-- CHAT BUBBLE -->
+<div class="chat-bubble" id="chatBubble">
+  <div class="chat-head">
+    <div><div class="ch-name">Velox Support</div><div class="ch-status"><span class="online-dot"></span>Online — typically replies instantly</div></div>
+    <span class="ch-close" onclick="closeChat()">✕</span>
+  </div>
+  <div class="chat-msgs" id="chatMsgs">
+    <div class="msg msg-bot">👋 Hi! Welcome to Velox Support. How can I help you today?</div>
+    <div class="msg msg-bot">You can ask about deposits, withdrawals, KYC, or any trading questions.</div>
+  </div>
+  <div class="chat-input">
+    <input class="chat-inp" type="text" id="chatInp" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="chat-send" onclick="sendChat()"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+  </div>
+</div>
+
+<script>
+function openChat() { document.getElementById('chatBubble').classList.add('open'); document.getElementById('chatFab').style.display = 'none'; document.getElementById('chatInp').focus(); }
+function closeChat() { document.getElementById('chatBubble').classList.remove('open'); document.getElementById('chatFab').style.display = 'flex'; }
+
+const CHAT_REPLIES = {
+  deposit: "💰 Deposits are credited within 30 minutes. Send BTC, USDT (TRC20), or ETH to the address in your dashboard. Minimum $10.",
+  withdrawal: "📤 Withdrawals are processed within 24 hours. Make sure your KYC is verified before requesting a withdrawal.",
+  kyc: "🪪 KYC verification takes under 24 hours. Go to your dashboard → KYC section and upload your ID and a selfie.",
+  leverage: "⚡ Velox offers up to 1:2000 leverage on major Forex pairs, 1:500 on Gold, 1:200 on Indices, and 1:50 on Crypto.",
+  spread: "📊 Spreads start from 0.0 pips on Raw Spread accounts. Standard accounts have spreads from 0.3 pips with no commission.",
+  login: "🔐 If you can't log in, use the 'Forgot Password' link. If your account is locked, email support@veloxtrade.com with your registered email.",
+  default: "Thank you for your message! A support agent will be with you shortly. For urgent issues, please also send an email to support@veloxtrade.com."
+};
+
+function sendChat() {
+  const inp = document.getElementById('chatInp');
+  const msg = inp.value.trim();
+  if (!msg) return;
+  addMsg(msg, 'user');
+  inp.value = '';
+  setTimeout(() => {
+    const lower = msg.toLowerCase();
+    let reply = CHAT_REPLIES.default;
+    if (lower.includes('deposit') || lower.includes('fund')) reply = CHAT_REPLIES.deposit;
+    else if (lower.includes('withdraw')) reply = CHAT_REPLIES.withdrawal;
+    else if (lower.includes('kyc') || lower.includes('verify')) reply = CHAT_REPLIES.kyc;
+    else if (lower.includes('leverage')) reply = CHAT_REPLIES.leverage;
+    else if (lower.includes('spread')) reply = CHAT_REPLIES.spread;
+    else if (lower.includes('login') || lower.includes('password') || lower.includes('access')) reply = CHAT_REPLIES.login;
+    addMsg(reply, 'bot');
+  }, 800);
+}
+
+function addMsg(text, from) {
+  const msgs = document.getElementById('chatMsgs');
+  const el = document.createElement('div');
+  el.className = `msg msg-${from}`;
+  el.textContent = text;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function toggleFAQ(el) {
+  const isOpen = el.classList.contains('open');
+  document.querySelectorAll('.faqm-q').forEach(q => { q.classList.remove('open'); q.nextElementSibling.classList.remove('open'); });
+  if (!isOpen) { el.classList.add('open'); el.nextElementSibling.classList.add('open'); }
+}
+
+function submitTicket() {
+  const name = document.getElementById('cf-name').value.trim();
+  const email = document.getElementById('cf-email').value.trim();
+  const dept = document.getElementById('cf-dept').value;
+  const subject = document.getElementById('cf-subject').value.trim();
+  const message = document.getElementById('cf-message').value.trim();
+  const msg = document.getElementById('cfMsg');
+  if (!name || !email) { msg.style.color = 'var(--red)'; msg.textContent = 'Please enter your name and email'; return; }
+  if (!dept) { msg.style.color = 'var(--red)'; msg.textContent = 'Please select a department'; return; }
+  if (!subject || !message) { msg.style.color = 'var(--red)'; msg.textContent = 'Please complete all fields'; return; }
+  msg.textContent = '';
+  const ticketNum = 'TKT-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+  document.getElementById('ticketId').textContent = ticketNum;
+  document.getElementById('cfSuccess').style.display = 'block';
+  document.querySelector('.sub-btn').disabled = true;
+  document.querySelector('.sub-btn').textContent = '✅ Ticket Submitted';
+}
+</script>
+</body>
+</html>
