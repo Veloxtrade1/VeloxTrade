@@ -343,6 +343,20 @@ tr:hover td{background:var(--bg2)}
   .bp-body{height:110px}
   #chartBox{height:calc(100vh - 48px - 36px - 150px - 56px)!important;min-height:180px}
 }
+
+/* ── DEMO/LIVE ACCOUNT SWITCHER ── */
+.acct-switcher{display:flex;align-items:center;background:var(--bg0);border:1px solid var(--border);border-radius:6px;overflow:hidden;flex-shrink:0}
+.acct-sw-btn{padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;border:none;background:none;color:var(--t3);transition:.15s;letter-spacing:.03em}
+.acct-sw-btn.demo.on{background:var(--yellowbg);color:var(--yellow)}
+.acct-sw-btn.live.on{background:var(--greenbg);color:var(--green)}
+.acct-sw-btn:hover:not(.on){color:var(--t1)}
+.acct-divider{width:1px;background:var(--border);height:100%}
+/* Demo banner */
+.demo-banner{background:linear-gradient(90deg,rgba(240,185,11,.12),rgba(240,185,11,.06));border-bottom:1px solid rgba(240,185,11,.2);padding:4px 14px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--yellow);flex-shrink:0}
+.demo-banner svg{width:13px;height:13px;fill:currentColor;flex-shrink:0}
+.demo-banner a{color:var(--green);font-weight:700;text-decoration:none;margin-left:auto}
+.demo-banner a:hover{text-decoration:underline}
+.demo-banner.hidden{display:none}
 </style>
 </head>
 <body>
@@ -357,6 +371,11 @@ tr:hover td{background:var(--bg2)}
   <div class="tn-tickers" id="tnTickers"></div>
   <div class="tn-right">
     <div class="live-tag lt-sim" id="liveTag"><div class="lt-dot"></div><span id="liveLabel">LOADING</span></div>
+    <div class="acct-switcher">
+      <button class="acct-sw-btn demo on" id="sw-demo" onclick="switchAccount('demo')">DEMO</button>
+      <div class="acct-divider"></div>
+      <button class="acct-sw-btn live" id="sw-live" onclick="switchAccount('live')">LIVE</button>
+    </div>
     <div class="bal-box"><div class="bal-lbl">Balance</div><div class="bal-val" id="topBal">$0.00</div></div>
     <div class="bal-box" style="border-color:var(--greenbdr)"><div class="bal-lbl">Open P&L</div><div class="bal-val g" id="topPL">$0.00</div></div>
     <button class="tn-btn tn-dep" onclick="openDep()">Deposit</button>
@@ -383,6 +402,13 @@ tr:hover td{background:var(--bg2)}
     <button class="cat" onclick="setCat('stocks',this)">Stocks</button>
   </div>
   <div class="sym-list" id="symList"></div>
+</div>
+
+<!-- DEMO BANNER -->
+<div class="demo-banner" id="demoBanner">
+  <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+  You are trading with virtual money in <strong style="margin:0 4px">DEMO</strong> mode. Switch to LIVE to trade with real funds.
+  <a href="#" onclick="switchAccount('live');return false">Switch to LIVE →</a>
 </div>
 
 <!-- ── CENTER ── -->
@@ -516,13 +542,15 @@ tr:hover td{background:var(--bg2)}
         <div class="acct-wd" onclick="openWD()">Withdraw</div>
       </div>
       <div class="acct-info">
+        <div class="ai-row"><span class="ai-l">Mode</span><span class="ai-v" id="acctTypeLabel" style="color:var(--yellow)">DEMO</span></div>
+        <div class="ai-row" id="acDemoRow"><span class="ai-l">Demo Balance</span><span class="ai-v" style="color:var(--yellow)">$10,000.00</span></div>
+        <div class="ai-row" id="acLiveRow"><span class="ai-l">Live Balance</span><span class="ai-v" style="color:var(--green)">$0.00</span></div>
         <div class="ai-row"><span class="ai-l">Email</span><span class="ai-v" id="acEmail">—</span></div>
         <div class="ai-row"><span class="ai-l">Country</span><span class="ai-v" id="acCountry">—</span></div>
         <div class="ai-row"><span class="ai-l">Account #</span><span class="ai-v" id="acNum">VLX-000000</span></div>
-        <div class="ai-row"><span class="ai-l">Account Type</span><span class="ai-v">Standard</span></div>
         <div class="ai-row"><span class="ai-l">Leverage</span><span class="ai-v" style="color:var(--yellow)">1:500</span></div>
         <div class="ai-row"><span class="ai-l">Currency</span><span class="ai-v">USD</span></div>
-        <div class="ai-row"><span class="ai-l">KYC Status</span><span class="ai-v" style="color:var(--yellow)" id="acKYC">Pending ⚠</span></div>
+        <div class="ai-row"><span class="ai-l">KYC</span><span class="ai-v" style="color:var(--yellow)" id="acKYC">Pending ⚠</span></div>
       </div>
       <button class="kyc-btn" onclick="location.href='pages/kyc.html'">Complete KYC Verification →</button>
     </div>
@@ -971,9 +999,12 @@ async function execTrade(side) {
     const r=await fetch('/api/trading/order',{method:'POST',headers:{'Content-Type':'application/json','x-auth-token':token},body:JSON.stringify({symbol:currentSym,side,quantity:lots,sl,tp})});
     const d=await r.json();
     if(r.ok){
-      user.balance=d.balance;
-      document.getElementById('topBal').textContent='$'+d.balance.toFixed(2);
-      const sltpInfo=sl||tp?` | SL:${sl||'—'} TP:${tp||'—'}`:'';
+      if(d.demoBalance!==undefined) user.demoBalance=d.demoBalance;
+      if(d.liveBalance!==undefined) user.liveBalance=d.liveBalance;
+      if(d.activeAccount) user.activeAccount=d.activeAccount;
+      localStorage.setItem('user',JSON.stringify(user));
+      updateBalanceDisplay();
+      const sltpInfo=sl||tp?` · SL:${sl||'—'} TP:${tp||'—'}`:'';
       toast(side==='buy'?'▲':'▼',`${side.toUpperCase()} ${lots} ${currentSym}`,`@ ${fmt(currentSym,d.price)}${sltpInfo}`,side==='buy'?'g':'r');
       loadPositions();
     } else {
@@ -1031,9 +1062,11 @@ async function closePos(symbol, quantity) {
     const d=await r.json();
     if(r.ok){
       const pnl=parseFloat(d.pnl);
+      if(d.demoBalance!==undefined) user.demoBalance=d.demoBalance;
+      if(d.liveBalance!==undefined) user.liveBalance=d.liveBalance;
+      localStorage.setItem('user',JSON.stringify(user));
+      updateBalanceDisplay();
       toast(pnl>=0?'✅':'📉','Position Closed',`${symbol} · P&L: ${pnl>=0?'+':''}$${d.pnl}`,pnl>=0?'g':'r');
-      user.balance=parseFloat(d.balance);
-      document.getElementById('topBal').textContent='$'+d.balance.toFixed(2);
       loadPositions();
     } else toast('❌','Error',d.msg,'r');
   }catch{toast('❌','Error','Try again','r');}
@@ -1146,17 +1179,92 @@ function setTF(tf,el){document.querySelectorAll('.tf').forEach(b=>b.classList.re
 
 // ── USER DATA ─────────────────────────────────────────
 async function loadUser(){
-  try{const r=await fetch('/api/account/me',{headers:{'x-auth-token':token}});if(r.ok){const u=await r.json();user={...user,...u};localStorage.setItem('user',JSON.stringify(user));}}catch{}
+  try{
+    const r=await fetch('/api/account/me',{headers:{'x-auth-token':token}});
+    if(r.ok){const u=await r.json();user={...user,...u};localStorage.setItem('user',JSON.stringify(user));}
+  }catch{}
+  updateBalanceDisplay();
+}
+
+function getActiveBalance(){
+  const acct=user.activeAccount||'demo';
+  return acct==='live'?(user.liveBalance||0):(user.demoBalance||10000);
+}
+
+function updateBalanceDisplay(){
+  const acct=user.activeAccount||'demo';
+  const bal=getActiveBalance();
   const name=user.fullName||user.email||'U';
   const el=id=>document.getElementById(id);
-  el('topBal').textContent='$'+(user.balance||0).toFixed(2);
+
+  // Update topnav
+  el('topBal').textContent='$'+bal.toFixed(2);
   el('userAvatar').textContent=name[0].toUpperCase();
-  if(el('acBal'))el('acBal').textContent='$'+(user.balance||0).toFixed(2);
-  if(el('acEq'))el('acEq').textContent='$'+(user.balance||0).toFixed(2);
-  if(el('acFree'))el('acFree').textContent='$'+(user.balance||0).toFixed(2);
+
+  // Update switcher buttons
+  const swDemo=el('sw-demo'), swLive=el('sw-live');
+  if(swDemo){swDemo.classList.toggle('on',acct==='demo');}
+  if(swLive){swLive.classList.toggle('on',acct==='live');}
+
+  // Show/hide demo banner
+  const banner=el('demoBanner');
+  if(banner) banner.className='demo-banner'+(acct==='live'?' hidden':'');
+  const mobBanner=el('mobDemoBanner');
+  if(mobBanner) mobBanner.style.display=acct==='live'?'none':'';
+
+  // Update account panel
+  if(el('acBal')){
+    el('acBal').textContent='$'+bal.toFixed(2);
+    const demoRow=el('acDemoRow'), liveRow=el('acLiveRow');
+    if(demoRow) demoRow.querySelector('.ai-v').textContent='$'+(user.demoBalance||10000).toFixed(2);
+    if(liveRow) liveRow.querySelector('.ai-v').textContent='$'+(user.liveBalance||0).toFixed(2);
+  }
+  if(el('acEq'))el('acEq').textContent='$'+bal.toFixed(2);
+  if(el('acFree'))el('acFree').textContent='$'+bal.toFixed(2);
   if(el('acEmail'))el('acEmail').textContent=user.email||'—';
   if(el('acCountry'))el('acCountry').textContent=user.country||'—';
   if(el('acNum'))el('acNum').textContent='VLX-'+(user.id||'000000').slice(-6).toUpperCase();
+  if(el('mobBal'))el('mobBal').textContent='$'+bal.toFixed(2);
+  if(el('mobEmail'))el('mobEmail').textContent=user.email||'—';
+  if(el('mobAccNum'))el('mobAccNum').textContent='VLX-'+(user.id||'000000').slice(-6).toUpperCase();
+
+  // Update account type label in account panel
+  const acctLabel=el('acctTypeLabel');
+  if(acctLabel){
+    acctLabel.textContent=acct==='live'?'LIVE':'DEMO';
+    acctLabel.style.color=acct==='live'?'var(--green)':'var(--yellow)';
+  }
+}
+
+async function switchAccount(acct){
+  if((user.activeAccount||'demo')===acct) return;
+
+  // Check if switching to live but no live balance
+  if(acct==='live'&&!(user.liveBalance>0)){
+    toast('💰','Deposit Required','You need to deposit funds to trade on LIVE account','y',6000);
+    openDep();
+    return;
+  }
+
+  try{
+    const r=await fetch('/api/account/switch',{
+      method:'POST',headers:{'Content-Type':'application/json','x-auth-token':token},
+      body:JSON.stringify({accountType:acct})
+    });
+    const d=await r.json();
+    if(r.ok){
+      user.activeAccount=acct;
+      user.demoBalance=d.demoBalance;
+      user.liveBalance=d.liveBalance;
+      localStorage.setItem('user',JSON.stringify(user));
+      updateBalanceDisplay();
+      toast(acct==='live'?'🟢':'🟡',
+        `Switched to ${acct.toUpperCase()}`,
+        acct==='live'?'Trading with real funds':'Trading with $10,000 virtual balance',
+        acct==='live'?'g':'y');
+      loadPositions(); // Reload positions for this account
+    }
+  }catch{toast('❌','Error','Switch failed','r');}
 }
 
 // ── DEPOSIT / WITHDRAW ────────────────────────────────
@@ -1366,7 +1474,13 @@ document.addEventListener('DOMContentLoaded',()=>{
     <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
       <button onclick="location.href='pages/kyc.html'" class="kyc-btn">Complete KYC →</button>
       <button onclick="location.href='pages/portfolio.html'" style="width:100%;padding:9px;border-radius:4px;background:var(--bg2);border:1px solid var(--border);color:var(--t1);font-size:12px;font-weight:600;cursor:pointer">My Portfolio →</button>
+      <button onclick="location.href='pages/trades.html'" style="width:100%;padding:9px;border-radius:4px;background:var(--bg2);border:1px solid var(--border);color:var(--t1);font-size:12px;font-weight:600;cursor:pointer">Live Trades →</button>
+      <button onclick="location.href='pages/pnl.html'" style="width:100%;padding:9px;border-radius:4px;background:var(--bg2);border:1px solid var(--border);color:var(--t1);font-size:12px;font-weight:600;cursor:pointer">P&L Report →</button>
       <button onclick="location.href='pages/learn.html'" style="width:100%;padding:9px;border-radius:4px;background:var(--bg2);border:1px solid var(--border);color:var(--t1);font-size:12px;font-weight:600;cursor:pointer">Education →</button>
+    </div>
+    <div style="background:rgba(240,185,11,.1);border:1px solid rgba(240,185,11,.25);border-radius:6px;padding:10px;margin-bottom:10px;font-size:11px;color:var(--yellow);line-height:1.5" id="mobDemoBanner">
+      ⚠️ DEMO MODE — virtual $10,000.<br>
+      <span onclick="switchAccount('live')" style="color:var(--green);font-weight:700;cursor:pointer">Switch to LIVE trading →</span>
     </div>
     <button onclick="doLogout()" style="width:100%;margin-top:12px;padding:9px;border-radius:4px;background:var(--redbg);border:1px solid var(--redbdr);color:var(--red);font-size:12px;font-weight:600;cursor:pointer">Logout</button>
   </div>

@@ -696,58 +696,13 @@ const ADMIN_KEY = 'admin123';
 let allClients = [];
 let selectedClientId = null;
 
-// ── FAKE CLIENTS DATA ─────────────────────────────────────────
-const FAKE_CLIENTS = [
-  {id:'c1',email:'ahmed.k@gmail.com',fullName:'Ahmed Khan',country:'Pakistan',balance:8420,deposits:12500,kycStatus:'verified',trades:234,joined:'2024-11-15'},
-  {id:'c2',email:'rafiq.m@gmail.com',fullName:'Rafiq Mohammed',country:'Bangladesh',balance:3200,deposits:5000,kycStatus:'verified',trades:87,joined:'2024-12-02'},
-  {id:'c3',email:'sandun.p@email.com',fullName:'Sandun Perera',country:'Sri Lanka',balance:450,deposits:1200,kycStatus:'pending',trades:12,joined:'2025-01-08'},
-  {id:'c4',email:'ram.s@email.com',fullName:'Ram Sharma',country:'Nepal',balance:1850,deposits:2500,kycStatus:'verified',trades:64,joined:'2025-01-22'},
-  {id:'c5',email:'fatima.a@gmail.com',fullName:'Fatima Ali',country:'Pakistan',balance:0,deposits:0,kycStatus:'unverified',trades:0,joined:'2025-02-14'},
-  {id:'c6',email:'karim.h@email.com',fullName:'Karim Hassan',country:'Bangladesh',balance:12400,deposits:18000,kycStatus:'verified',trades:412,joined:'2024-10-05'},
-  {id:'c7',email:'priya.s@email.com',fullName:'Priya Silva',country:'Sri Lanka',balance:780,deposits:1500,kycStatus:'pending',trades:23,joined:'2025-02-28'},
-  {id:'c8',email:'ali.r@gmail.com',fullName:'Ali Raza',country:'Pakistan',balance:5600,deposits:8000,kycStatus:'verified',trades:156,joined:'2024-12-18'},
-];
+// ── REAL DATA — loaded from API ─────────────────────────────
+let adminStats = {};
+let allDeposits = [];
+let allWithdrawals = [];
+let allPositions = [];
 
-const FAKE_DEPS = [
-  {client:'Ahmed Khan',email:'ahmed.k@gmail.com',amount:500,currency:'USDT',hash:'Txx123abc...def',time:'2h ago',status:'pending'},
-  {client:'Rafiq Mohammed',email:'rafiq.m@gmail.com',amount:1000,currency:'BTC',hash:'bc1q...xyz789',time:'4h ago',status:'pending'},
-  {client:'Ram Sharma',email:'ram.s@email.com',amount:200,currency:'USDT',hash:'Txx456def...ghi',time:'6h ago',status:'pending'},
-  {client:'Karim Hassan',email:'karim.h@email.com',amount:2000,currency:'ETH',hash:'0x1a2b...3c4d',time:'8h ago',status:'approved'},
-  {client:'Ali Raza',email:'ali.r@gmail.com',amount:750,currency:'BTC',hash:'bc1q...mnop',time:'1d ago',status:'approved'},
-];
 
-const FAKE_WDS = [
-  {client:'Ahmed Khan',amount:800,address:'Txx...wallet1',time:'1h ago',status:'pending'},
-  {client:'Karim Hassan',amount:2500,address:'bc1q...wallet2',time:'3h ago',status:'pending'},
-  {client:'Ali Raza',amount:910,address:'Txx...wallet3',time:'5h ago',status:'pending'},
-];
-
-const FAKE_TICKETS = [
-  {id:'#T-1042',title:'Cannot withdraw — transaction stuck',priority:'high',status:'open',client:'Ahmed Khan',time:'30m ago',preview:'I submitted a withdrawal 3 days ago and it still shows pending. My TX hash is...'},
-  {id:'#T-1041',title:'KYC document rejected — need help',priority:'medium',status:'pending',client:'Sandun Perera',time:'2h ago',preview:'My national ID was rejected but it is valid. Please review my submission again.'},
-  {id:'#T-1040',title:'Login issue — 2FA not working',priority:'low',status:'open',client:'Ram Sharma',time:'4h ago',preview:'I am unable to login since yesterday. The app keeps showing invalid code error.'},
-  {id:'#T-1039',title:'Deposit not credited after 24 hours',priority:'high',status:'open',client:'Fatima Ali',time:'1d ago',preview:'I sent 500 USDT yesterday and my account balance is still zero. TX hash attached.'},
-  {id:'#T-1038',title:'How to change leverage?',priority:'low',status:'resolved',client:'Rafiq Mohammed',time:'2d ago',preview:'I want to increase my leverage from 1:100 to 1:500. Is this possible?'},
-];
-
-const FAKE_EMPLOYEES = [
-  {name:'Omar Farooq',role:'Head of Compliance',dept:'Legal',avatar:'O',color:'#4B8BF5',clients:0,tickets:0,since:'2024-01'},
-  {name:'Sara Ahmed',role:'Client Support Lead',dept:'Support',avatar:'S',color:'#00E5B0',clients:0,tickets:24,since:'2024-03'},
-  {name:'Hassan Ali',role:'Senior Trader / Analyst',dept:'Trading',avatar:'H',color:'#FFB547',clients:0,tickets:0,since:'2024-06'},
-  {name:'Nadia Khan',role:'Marketing Manager',dept:'Marketing',avatar:'N',color:'#8B5CF6',clients:0,tickets:0,since:'2024-08'},
-  {name:'Bilal Sheikh',role:'IT & Platform Admin',dept:'Technology',avatar:'B',color:'#FF6B35',clients:0,tickets:8,since:'2024-02'},
-  {name:'Aisha Rahman',role:'KYC Officer',dept:'Compliance',avatar:'A',color:'#FF3D5A',clients:0,tickets:18,since:'2024-09'},
-];
-
-const LIVE_TRADES = [
-  {client:'Ahmed Khan',symbol:'EURUSD',side:'BUY',lots:0.5,entry:1.0821,current:1.0843,pl:+11.0,margin:108.2},
-  {client:'Karim Hassan',symbol:'XAUUSD',side:'BUY',lots:1,entry:2308.4,current:2314.5,pl:+61.0,margin:462.0},
-  {client:'Ali Raza',symbol:'BTCUSD',side:'SELL',lots:0.01,entry:68200,current:67842,pl:+35.8,margin:136.4},
-  {client:'Rafiq Mohammed',symbol:'GBPUSD',side:'BUY',lots:0.3,entry:1.2654,current:1.2678,pl:+7.2,margin:75.9},
-  {client:'Ram Sharma',symbol:'NAS100',side:'BUY',lots:0.1,entry:17820,current:17834,pl:+14.0,margin:356.4},
-];
-
-// ── PANEL NAVIGATION ─────────────────────────────────────────
 function showPanel(id, el) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
@@ -772,24 +727,7 @@ function showPanel(id, el) {
 }
 
 // ── LOAD DATA ─────────────────────────────────────────────────
-async function loadData() {
-  // Try to fetch from API
-  try {
-    const r = await fetch('/api/admin/users', { headers: { 'admin-key': ADMIN_KEY } });
-    if (r.ok) {
-      const data = await r.json();
-      allClients = data.length ? data : FAKE_CLIENTS;
-    } else { allClients = FAKE_CLIENTS; }
-  } catch { allClients = FAKE_CLIENTS; }
-
-  // Update overview stats
-  document.getElementById('totalClients').textContent = allClients.length;
-  document.getElementById('clientCountBadge').textContent = allClients.length;
-  document.getElementById('clientSub').textContent = `${allClients.filter(c=>c.kycStatus==='verified').length} verified`;
-
-  renderRecentClients();
-  renderActivity();
-}
+async // loadData() — see real implementation below
 
 // ── RECENT CLIENTS ────────────────────────────────────────────
 function renderRecentClients() {
@@ -877,32 +815,6 @@ function verifyKYC(id) { const c = allClients.find(x => (x.id||x._id) === id); i
 function suspendClient(id) { showToast('⚠️ Client suspended (demo mode)'); }
 
 // ── DEPOSITS / WITHDRAWALS ────────────────────────────────────
-function renderDeposits() {
-  document.getElementById('depositsTable').innerHTML = FAKE_DEPS.map(d => `
-    <tr>
-      <td><div class="user-name">${d.client}</div><div class="user-email">${d.email}</div></td>
-      <td class="mono" style="color:var(--green);font-weight:700">$${d.amount}</td>
-      <td>${d.currency}</td>
-      <td class="mono" style="font-size:10px;color:var(--t3)">${d.hash}</td>
-      <td style="color:var(--t3);font-size:11px">${d.time}</td>
-      <td>${d.status==='approved'?'<span class="tag tag-green">Approved</span>':'<span class="tag tag-gold">Pending</span>'}</td>
-      <td>${d.status==='pending'?`<div class="action-btns"><button class="btn btn-green btn-sm" onclick="approveDeposit(this,'${d.client}',${d.amount})">Approve</button><button class="btn btn-red btn-sm" onclick="rejectDeposit(this)">Reject</button></div>`:'<span style="font-size:11px;color:var(--t3)">Done</span>'}</td>
-    </tr>`).join('');
-}
-function renderWithdrawals() {
-  document.getElementById('withdrawalsTable').innerHTML = FAKE_WDS.map(w => `
-    <tr>
-      <td><div class="user-name">${w.client}</div></td>
-      <td class="mono" style="color:var(--red);font-weight:700">$${w.amount}</td>
-      <td class="mono" style="font-size:10px;color:var(--t3)">${w.address}</td>
-      <td style="color:var(--t3);font-size:11px">${w.time}</td>
-      <td><span class="tag tag-gold">Pending</span></td>
-      <td><div class="action-btns">
-        <button class="btn btn-green btn-sm" onclick="processWD(this,'${w.client}',${w.amount})">Process</button>
-        <button class="btn btn-red btn-sm" onclick="rejectWD(this)">Reject</button>
-      </div></td>
-    </tr>`).join('');
-}
 function approveDeposit(btn, client, amount) {
   btn.closest('td').innerHTML = '<span class="tag tag-green">Approved ✓</span>';
   showToast(`💰 Deposit of $${amount} approved for ${client}`);
@@ -912,45 +824,8 @@ function processWD(btn, client, amount) { btn.closest('td').innerHTML = '<span c
 function rejectWD(btn) { btn.closest('td').innerHTML = '<span class="tag tag-red">Rejected</span>'; showToast('❌ Withdrawal rejected'); }
 
 // ── SUPPORT ───────────────────────────────────────────────────
-function renderSupport() {
-  const priorColor = {high:'var(--red)',medium:'var(--gold)',low:'var(--blue)'};
-  const statusBg = {open:'tag-red',pending:'tag-gold',resolved:'tag-green'};
-  document.getElementById('supportTickets').innerHTML = FAKE_TICKETS.map(t => `
-    <div class="ticket">
-      <div class="ticket-top">
-        <span class="ticket-id">${t.id}</span>
-        <div style="display:flex;gap:6px"><span class="tag ${statusBg[t.status]}">${t.status.toUpperCase()}</span>
-        <span class="tag" style="background:rgba(0,0,0,.2);color:${priorColor[t.priority]};border:1px solid ${priorColor[t.priority]}40">${t.priority.toUpperCase()}</span></div>
-      </div>
-      <div class="ticket-title">${t.title}</div>
-      <div class="ticket-preview">${t.preview}</div>
-      <div class="ticket-footer">
-        <span>👤 ${t.client}</span>
-        <span>🕐 ${t.time}</span>
-        <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="showToast('📨 Replying to ticket ${t.id}')">Reply</button>
-        ${t.status!=='resolved'?`<button class="btn btn-ghost btn-sm" style="color:var(--green);border-color:var(--gbr)" onclick="showToast('✅ Ticket ${t.id} resolved')">Resolve</button>`:''}
-      </div>
-    </div>`).join('');
-}
 
 // ── EMPLOYEES ─────────────────────────────────────────────────
-function renderEmployees() {
-  document.getElementById('employeeGrid').innerHTML = FAKE_EMPLOYEES.map(e => `
-    <div class="emp-card">
-      <div class="emp-avatar" style="background:linear-gradient(135deg,${e.color}44,${e.color}22);color:${e.color}">${e.avatar}</div>
-      <div class="emp-name">${e.name}</div>
-      <div class="emp-role">${e.role}</div>
-      <div class="emp-dept">${e.dept} · Since ${e.since}</div>
-      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px">
-        <span class="tag tag-blue" style="font-size:9px">Active</span>
-      </div>
-      <div class="emp-stats">
-        <div><div class="emp-stat-v">${e.tickets}</div><div class="emp-stat-l">Tickets</div></div>
-        <div><div class="emp-stat-v">98%</div><div class="emp-stat-l">Uptime</div></div>
-        <div><div class="emp-stat-v">⭐4.8</div><div class="emp-stat-l">Rating</div></div>
-      </div>
-    </div>`).join('');
-}
 function openAddEmployeeModal() { showToast('👤 Add Employee form — fully customisable'); }
 
 // ── LIVE TRADES ───────────────────────────────────────────────
@@ -1167,6 +1042,458 @@ loadData();
 // Auto-refresh live data
 setInterval(() => { if (document.getElementById('panel-trading').classList.contains('active')) renderLiveTrades(); }, 3000);
 setInterval(renderActivity, 30000);
+</script>
+</body>
+</html>
+// ── LOAD ALL DATA FROM REAL API ───────────────────────────────
+async function loadData() {
+  try {
+    // Load stats
+    const sR = await fetch('/api/admin/stats', {headers:{'admin-key':ADMIN_KEY}});
+    if (sR.ok) {
+      adminStats = await sR.json();
+      document.getElementById('totalClients').textContent = adminStats.users || 0;
+      document.getElementById('clientCountBadge').textContent = adminStats.users || 0;
+      document.getElementById('clientSub').textContent = `${adminStats.verified||0} verified`;
+    }
+    // Load users
+    const uR = await fetch('/api/admin/users', {headers:{'admin-key':ADMIN_KEY}});
+    if (uR.ok) allClients = await uR.json();
+
+    // Load deposits
+    const dR = await fetch('/api/admin/deposits', {headers:{'admin-key':ADMIN_KEY}});
+    if (dR.ok) allDeposits = await dR.json();
+
+    // Load withdrawals
+    const wR = await fetch('/api/admin/withdrawals', {headers:{'admin-key':ADMIN_KEY}});
+    if (wR.ok) allWithdrawals = await wR.json();
+
+    // Load live positions
+    const pR = await fetch('/api/admin/positions', {headers:{'admin-key':ADMIN_KEY}});
+    if (pR.ok) allPositions = await pR.json();
+
+    // Update overview cards
+    document.getElementById('totalClients').textContent = allClients.length;
+    document.getElementById('clientCountBadge').textContent = allClients.length;
+    const pendingDeps = allDeposits.filter(d=>d.status==='pending');
+    const pendingWds = allWithdrawals.filter(w=>w.status==='pending');
+    const el = id => document.getElementById(id);
+    if(el('pendingDepCount')) el('pendingDepCount').textContent = pendingDeps.length;
+    if(el('pendingWdCount')) el('pendingWdCount').textContent = pendingWds.length;
+    if(el('openPosCnt')) el('openPosCnt').textContent = allPositions.length;
+    if(el('kycPendingCount')) el('kycPendingCount').textContent = allClients.filter(c=>c.kycStatus==='pending').length;
+
+    renderRecentClients();
+    renderActivity();
+  } catch(e) {
+    console.error('Admin data load error:', e);
+    showToast('⚠️ Could not load data. Check admin key.');
+  }
+}
+
+// ── RECENT CLIENTS ────────────────────────────────────────────
+function renderRecentClients() {
+  const tbody = document.getElementById('recentClientsTable');
+  if (!tbody) return;
+  const recent = [...allClients].slice(0, 6);
+  if (!recent.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--t3);padding:20px">No clients yet</td></tr>'; return; }
+  tbody.innerHTML = recent.map(c => `
+    <tr>
+      <td><div class="user-cell"><div class="user-avatar" style="background:${randomColor(c.fullName||c.email)}">${(c.fullName||c.email||'?')[0].toUpperCase()}</div><div><div class="user-name">${c.fullName||'—'}</div><div class="user-email">${c.email}</div></div></div></td>
+      <td><span style="font-size:12px">${flagEmoji(c.country)} ${c.country||'—'}</span></td>
+      <td class="mono" style="color:var(--green)">$${(c.liveBalance||0).toFixed(2)}</td>
+      <td>${kycBadge(c.kycStatus)}</td>
+    </tr>`).join('');
+}
+
+// ── CLIENTS TABLE ─────────────────────────────────────────────
+function renderClientsTable() {
+  const search = (document.getElementById('clientSearchInput')||{}).value?.toLowerCase()||'';
+  const filter = (document.getElementById('clientFilter')||{}).value||'all';
+  let list = allClients.filter(c => {
+    const ms = !search || (c.fullName||'').toLowerCase().includes(search) || (c.email||'').toLowerCase().includes(search);
+    const mf = filter==='all'||(filter==='verified'&&c.kycStatus==='verified')||(filter==='pending'&&c.kycStatus==='pending')||(filter==='active'&&c.status!=='suspended');
+    return ms && mf;
+  });
+  const tbody = document.getElementById('clientsTable');
+  if (!tbody) return;
+  if (!list.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--t3);padding:20px">No clients found</td></tr>'; return; }
+  tbody.innerHTML = list.map(c => `
+    <tr>
+      <td><div class="user-cell"><div class="user-avatar" style="background:${randomColor(c.fullName||c.email)}">${(c.fullName||c.email||'?')[0].toUpperCase()}</div><div><div class="user-name">${c.fullName||'—'}</div><div class="user-email">${c.email}</div></div></div></td>
+      <td><span>${flagEmoji(c.country)} ${c.country||'—'}</span></td>
+      <td>
+        <div class="mono" style="color:var(--green);font-size:11px">Live: $${(c.liveBalance||0).toFixed(2)}</div>
+        <div class="mono" style="color:var(--gold);font-size:10px">Demo: $${(c.demoBalance||10000).toFixed(2)}</div>
+      </td>
+      <td class="mono" style="font-size:11px">${formatDate(c.createdAt)}</td>
+      <td>${kycBadge(c.kycStatus)}</td>
+      <td><span class="tag ${c.status==='suspended'?'tag-red':'tag-green'}">${c.status||'active'}</span></td>
+      <td style="color:var(--t3);font-size:11px">${formatDate(c.lastLogin||c.createdAt)}</td>
+      <td><div class="action-btns">
+        <button class="btn btn-ghost btn-sm" onclick="openBalanceModal('${c.id||c._id}','${(c.fullName||c.email).replace(/'/g,'')}',${c.liveBalance||0})">Balance</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--green);border-color:var(--gbr)" onclick="approveKYCById('${c.id||c._id}')">KYC ✓</button>
+        <button class="btn btn-red btn-sm" onclick="suspendClient('${c.id||c._id}','${c.status==='suspended'?'active':'suspended'}')">${c.status==='suspended'?'Activate':'Suspend'}</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+// ── KYC ───────────────────────────────────────────────────────
+function renderKYC() {
+  const pending = allClients.filter(c => c.kycStatus === 'pending');
+  const el = document.getElementById('kycQueue');
+  if (!el) return;
+  if (!pending.length) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--t3)">✅ No pending KYC submissions<br><small>New KYC requests will appear here</small></div>';
+  } else {
+    el.innerHTML = pending.map(c => `
+      <div class="kyc-card">
+        <div class="kyc-thumb">${(c.fullName||c.email||'?')[0].toUpperCase()}</div>
+        <div class="kyc-info">
+          <div class="kyc-name">${c.fullName||c.email}</div>
+          <div class="kyc-detail">${c.email} · ${flagEmoji(c.country)} ${c.country||'—'} · Registered ${formatDate(c.createdAt)}</div>
+          <div style="margin-top:6px;display:flex;gap:8px;font-size:11px;color:var(--t3)">
+            <span>📄 Documents pending review</span>
+          </div>
+        </div>
+        <div class="kyc-actions">
+          <button class="btn btn-green btn-sm" onclick="approveKYCById('${c.id||c._id}')">✓ Approve</button>
+          <button class="btn btn-red btn-sm" onclick="rejectKYCById('${c.id||c._id}')">✗ Reject</button>
+        </div>
+      </div>`).join('');
+  }
+  // Verified list
+  const verified = allClients.filter(c=>c.kycStatus==='verified');
+  el.innerHTML += `<div class="section-hdr" style="margin-top:20px"><h3>Recently Verified (${verified.length})</h3></div>` +
+    (verified.slice(0,5).map(c=>`
+    <div class="kyc-card" style="opacity:.8">
+      <div class="kyc-thumb" style="background:var(--gbg);color:var(--green)">✓</div>
+      <div class="kyc-info"><div class="kyc-name">${c.fullName||c.email}</div><div class="kyc-detail">${c.email}</div></div>
+      <span class="tag tag-green">Verified</span>
+    </div>`).join('')||'<div style="color:var(--t3);font-size:12px;padding:10px">No verified clients yet</div>');
+}
+
+async function approveKYCById(id) {
+  try {
+    const r = await fetch(`/api/admin/users/${id}/kyc`,{method:'PATCH',headers:{'Content-Type':'application/json','admin-key':ADMIN_KEY},body:JSON.stringify({status:'verified'})});
+    if(r.ok){showToast('✅ KYC Approved');await loadData();renderKYC();renderClientsTable();}
+    else showToast('❌ Failed: '+((await r.json()).msg||''));
+  } catch { showToast('❌ Error'); }
+}
+async function rejectKYCById(id) {
+  try {
+    const r = await fetch(`/api/admin/users/${id}/kyc`,{method:'PATCH',headers:{'Content-Type':'application/json','admin-key':ADMIN_KEY},body:JSON.stringify({status:'rejected'})});
+    if(r.ok){showToast('❌ KYC Rejected');await loadData();renderKYC();}
+    else showToast('❌ Failed');
+  } catch { showToast('❌ Error'); }
+}
+async function suspendClient(id, newStatus) {
+  try {
+    const r = await fetch(`/api/admin/users/${id}/status`,{method:'PATCH',headers:{'Content-Type':'application/json','admin-key':ADMIN_KEY},body:JSON.stringify({status:newStatus})});
+    if(r.ok){showToast(`${newStatus==='suspended'?'⚠️ Client suspended':'✅ Client activated'}`);await loadData();renderClientsTable();}
+    else showToast('❌ Failed');
+  } catch { showToast('❌ Error'); }
+}
+function approveKYC(id){approveKYCById(id);}
+function rejectKYC(id){rejectKYCById(id);}
+function viewDocs(id){showToast('📄 Document viewer — upload to cloud storage to enable');}
+function verifyKYC(id){approveKYCById(id);}
+
+// ── DEPOSITS ──────────────────────────────────────────────────
+function renderDeposits() {
+  const el = document.getElementById('depositsTable');
+  if (!el) return;
+  if (!allDeposits.length) { el.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--t3);padding:24px">No deposit requests yet</td></tr>'; return; }
+  el.innerHTML = allDeposits.map(d => `
+    <tr>
+      <td><div class="user-name">${d.userName||'—'}</div><div class="user-email">${d.userEmail||'—'}</div></td>
+      <td class="mono" style="color:var(--green);font-weight:700">$${d.amount}</td>
+      <td><span class="tag tag-blue">${d.method||'crypto'}</span></td>
+      <td class="mono" style="font-size:10px;color:var(--t3)">${(d.txHash||d.reference||'—').slice(0,20)}${(d.txHash||'').length>20?'...':''}</td>
+      <td style="color:var(--t3);font-size:11px">${formatDate(d.createdAt)}</td>
+      <td>${d.status==='approved'?'<span class="tag tag-green">Approved</span>':d.status==='rejected'?'<span class="tag tag-red">Rejected</span>':'<span class="tag tag-gold">Pending</span>'}</td>
+      <td>${d.status==='pending'?`<div class="action-btns">
+        <button class="btn btn-green btn-sm" onclick="approveDeposit('${d.id||d._id}',this)">Approve</button>
+        <button class="btn btn-red btn-sm" onclick="rejectDeposit('${d.id||d._id}',this)">Reject</button>
+      </div>`:'<span style="font-size:11px;color:var(--t3)">Processed</span>'}</td>
+    </tr>`).join('');
+}
+
+async function approveDeposit(id, btn) {
+  btn.disabled=true; btn.textContent='...';
+  try {
+    const r = await fetch(`/api/admin/deposits/${id}/approve`,{method:'POST',headers:{'admin-key':ADMIN_KEY}});
+    const d = await r.json();
+    if(r.ok){showToast('✅ Deposit approved — balance credited');await loadData();renderDeposits();}
+    else showToast('❌ '+(d.msg||'Failed'));
+  } catch { showToast('❌ Error'); btn.disabled=false; btn.textContent='Approve'; }
+}
+async function rejectDeposit(id, btn) {
+  btn.disabled=true;
+  try {
+    const r = await fetch(`/api/admin/deposits/${id}/reject`,{method:'POST',headers:{'admin-key':ADMIN_KEY}});
+    if(r.ok){showToast('❌ Deposit rejected');await loadData();renderDeposits();}
+    else showToast('❌ Failed');
+  } catch { showToast('❌ Error'); }
+}
+
+// ── WITHDRAWALS ───────────────────────────────────────────────
+function renderWithdrawals() {
+  const el = document.getElementById('withdrawalsTable');
+  if (!el) return;
+  if (!allWithdrawals.length) { el.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:24px">No withdrawal requests yet</td></tr>'; return; }
+  el.innerHTML = allWithdrawals.map(w => `
+    <tr>
+      <td><div class="user-name">${w.userName||'—'}</div><div class="user-email">${w.userEmail||'—'}</div></td>
+      <td class="mono" style="color:var(--red);font-weight:700">$${w.amount}</td>
+      <td><span class="tag tag-blue">${w.method||'crypto'}</span></td>
+      <td class="mono" style="font-size:10px;color:var(--t3)">${(w.address||'—').slice(0,24)}${(w.address||'').length>24?'...':''}</td>
+      <td style="color:var(--t3);font-size:11px">${formatDate(w.createdAt)}</td>
+      <td>${w.status==='processed'?'<span class="tag tag-green">Processed</span>':w.status==='rejected'?'<span class="tag tag-red">Rejected</span>':'<span class="tag tag-gold">Pending</span>'}</td>
+      <td>${w.status==='pending'?`<div class="action-btns">
+        <button class="btn btn-green btn-sm" onclick="processWD('${w.id||w._id}',this)">Process</button>
+        <button class="btn btn-red btn-sm" onclick="rejectWD('${w.id||w._id}',this)">Reject</button>
+      </div>`:'<span style="font-size:11px;color:var(--t3)">Done</span>'}</td>
+    </tr>`).join('');
+}
+async function processWD(id, btn) {
+  btn.disabled=true; btn.textContent='...';
+  try {
+    const r = await fetch(`/api/admin/withdrawals/${id}/process`,{method:'POST',headers:{'admin-key':ADMIN_KEY}});
+    if(r.ok){showToast('✅ Withdrawal processed');await loadData();renderWithdrawals();}
+    else showToast('❌ '+(await r.json()).msg||'Failed');
+  } catch { showToast('❌ Error'); }
+}
+async function rejectWD(id, btn) {
+  btn.disabled=true;
+  try {
+    await fetch(`/api/admin/withdrawals/${id}/reject`,{method:'POST',headers:{'admin-key':ADMIN_KEY}});
+    showToast('Withdrawal rejected'); await loadData(); renderWithdrawals();
+  } catch { showToast('❌ Error'); }
+}
+
+// ── LIVE TRADES ───────────────────────────────────────────────
+function renderLiveTrades() {
+  const el = document.getElementById('liveTradesTable');
+  if (!el) return;
+  if (!allPositions.length) { el.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--t3);padding:24px">No open positions currently</td></tr>'; return; }
+  document.getElementById('openPosCnt').textContent = allPositions.length;
+  el.innerHTML = allPositions.map(p => {
+    const pnl=parseFloat(p.pnl)||0;
+    return `<tr>
+      <td class="user-name">${p.userName||'—'}</td>
+      <td style="font-weight:700">${p.symbol}</td>
+      <td><span class="tag tag-${p.side==='buy'?'green':'red'}">${(p.side||'buy').toUpperCase()}</span></td>
+      <td class="mono">${p.quantity||1}</td>
+      <td class="mono">${parseFloat(p.avgPrice||0).toFixed(5)}</td>
+      <td class="mono">${parseFloat(p.currentPrice||p.avgPrice||0).toFixed(5)}</td>
+      <td class="mono" style="color:${pnl>=0?'var(--green)':'var(--red)'};font-weight:700">${pnl>=0?'+':''}$${Math.abs(pnl).toFixed(2)}</td>
+      <td><span class="tag tag-${p.accountType==='live'?'green':'gold'}">${(p.accountType||'demo').toUpperCase()}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── ACCOUNTS TABLE ────────────────────────────────────────────
+function renderAccounts() {
+  const el = document.getElementById('accountsTable');
+  if (!el) return;
+  if (!allClients.length) { el.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--t3);padding:20px">No accounts yet</td></tr>'; return; }
+  el.innerHTML = allClients.map((c,i) => `
+    <tr>
+      <td class="mono" style="color:var(--blue);font-size:11px">VLX-${(c.id||String(i)).slice(-6).toUpperCase()}</td>
+      <td><div class="user-name">${c.fullName||c.email}</div><div class="user-email">${c.email}</div></td>
+      <td><span class="tag tag-blue">Standard</span></td>
+      <td class="mono" style="color:var(--green)">$${(c.liveBalance||0).toFixed(2)}</td>
+      <td class="mono" style="color:var(--gold)">$${(c.demoBalance||10000).toFixed(2)}</td>
+      <td>${kycBadge(c.kycStatus)}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="openBalanceModal('${c.id||c._id}','${(c.fullName||c.email).replace(/'/g,'')}',${c.liveBalance||0})">Adjust</button></td>
+    </tr>`).join('');
+}
+
+// ── TRANSACTIONS (combined) ────────────────────────────────────
+function renderTransactions() {
+  const el = document.getElementById('transactionsTable');
+  if (!el) return;
+  const all = [
+    ...allDeposits.map(d=>({...d,type:'deposit'})),
+    ...allWithdrawals.map(w=>({...w,type:'withdrawal'}))
+  ].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  if (!all.length) { el.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--t3);padding:20px">No transactions yet</td></tr>'; return; }
+  el.innerHTML = all.slice(0,50).map(t => `
+    <tr>
+      <td class="mono" style="color:var(--blue);font-size:11px">${(t.id||t._id||'—').slice(-8).toUpperCase()}</td>
+      <td><div class="user-name">${t.userName||'—'}</div><div class="user-email">${t.userEmail||'—'}</div></td>
+      <td><span class="tag ${t.type==='deposit'?'tag-green':'tag-red'}">${t.type.toUpperCase()}</span></td>
+      <td class="mono" style="color:${t.type==='deposit'?'var(--green)':'var(--red)'}";font-weight:700>${t.type==='deposit'?'+':'-'}$${t.amount}</td>
+      <td><span class="tag tag-blue">${t.method||'crypto'}</span></td>
+      <td><span class="tag ${t.status==='approved'||t.status==='processed'?'tag-green':t.status==='pending'?'tag-gold':'tag-red'}">${t.status?.toUpperCase()||'PENDING'}</span></td>
+      <td style="color:var(--t3);font-size:11px">${formatDate(t.createdAt)}</td>
+    </tr>`).join('');
+}
+
+// ── ACTIVITY ─────────────────────────────────────────────────
+function renderActivity() {
+  const el = document.getElementById('activityFeed');
+  if (!el) return;
+  const items = [];
+  allDeposits.slice(0,3).forEach(d=>items.push({icon:'💰',bg:'var(--gbg)',text:`<strong>${d.userName||d.userEmail||'Client'}</strong> deposited $${d.amount} via ${d.method}`,time:formatDate(d.createdAt)}));
+  allWithdrawals.slice(0,2).forEach(w=>items.push({icon:'📤',bg:'var(--rbg)',text:`<strong>${w.userName||w.userEmail||'Client'}</strong> requested withdrawal of $${w.amount}`,time:formatDate(w.createdAt)}));
+  allClients.slice(0,3).forEach(c=>items.push({icon:'👤',bg:'var(--bbg)',text:`<strong>New registration:</strong> ${c.fullName||c.email} from ${c.country||'—'}`,time:formatDate(c.createdAt)}));
+  allClients.filter(c=>c.kycStatus==='pending').slice(0,2).forEach(c=>items.push({icon:'🪪',bg:'var(--goldbg)',text:`<strong>${c.fullName||c.email}</strong> submitted KYC documents`,time:formatDate(c.createdAt)}));
+  if(!items.length) { el.innerHTML='<div style="text-align:center;padding:24px;color:var(--t3);font-size:13px">No activity yet. Users who register and deposit will appear here.</div>'; return; }
+  items.sort((a,b)=>new Date(b.time)-new Date(a.time));
+  el.innerHTML = items.slice(0,8).map(a => `
+    <div class="activity-item">
+      <div class="act-icon" style="background:${a.bg}">${a.icon}</div>
+      <div class="act-text">${a.text}</div>
+      <div class="act-time">${a.time}</div>
+    </div>`).join('');
+}
+function refreshActivity(){loadData();showToast('🔄 Data refreshed');}
+
+// ── SUPPORT ───────────────────────────────────────────────────
+function renderSupport() {
+  const el = document.getElementById('supportTickets');
+  if(!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--t3)">📬 No open support tickets<br><small>Connect to a ticketing system to enable</small></div>';
+}
+
+// ── RISK ──────────────────────────────────────────────────────
+function renderRisk() {
+  // Calculate from real positions
+  const symCounts={};
+  allPositions.forEach(p=>{symCounts[p.symbol]=(symCounts[p.symbol]||0)+1;});
+  const total=allPositions.length||1;
+  const risks=Object.entries(symCounts).slice(0,6).map(([sym,cnt])=>({name:sym,val:Math.round(cnt/total*100),color:['var(--green)','var(--gold)','var(--blue)','var(--purple,#8b5cf6)'][Object.keys(symCounts).indexOf(sym)%4]}));
+  const el=document.getElementById('riskMeters');
+  if(el) el.innerHTML = risks.length?risks.map(r=>`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span>${r.name}</span><span style="font-weight:700;font-family:var(--mono);color:${r.color}">${r.val}%</span></div><div class="risk-meter"><div class="rm-fill" style="width:${r.val}%;background:${r.color}"></div></div></div>`).join('')
+    :'<div style="text-align:center;padding:24px;color:var(--t3)">No open positions to analyze</div>';
+  const alertEl=document.getElementById('riskAlerts');
+  if(alertEl){
+    const livePosCount=allPositions.filter(p=>p.accountType==='live').length;
+    alertEl.innerHTML=livePosCount?
+      `<div class="activity-item"><div class="act-icon" style="background:var(--bbg)">📊</div><div class="act-text">${livePosCount} live position${livePosCount>1?'s':''} currently open</div><div class="act-time">Live</div></div>
+       <div class="activity-item"><div class="act-icon" style="background:var(--gbg)">✅</div><div class="act-text">All systems operating normally</div><div class="act-time">Now</div></div>`
+      :'<div style="text-align:center;padding:24px;color:var(--t3)">No risk alerts</div>';
+  }
+}
+
+// ── EMPLOYEES ─────────────────────────────────────────────────
+function renderEmployees() {
+  const el=document.getElementById('employeeGrid');
+  if(!el) return;
+  el.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--t3)">👥 Add your team members here<br><small>Employee management coming soon</small></div>';
+}
+function openAddEmployeeModal(){showToast('👤 Employee management — coming soon');}
+
+// ── ANALYTICS ─────────────────────────────────────────────────
+function renderAnalytics() {
+  const countries={};
+  allClients.forEach(c=>{if(c.country)countries[c.country]=(countries[c.country]||0)+1;});
+  const total=allClients.length||1;
+  const sorted=Object.entries(countries).sort((a,b)=>b[1]-a[1]);
+  const el=document.getElementById('countryStats');
+  if(el) el.innerHTML=sorted.length?sorted.slice(0,6).map(([c,n])=>`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>${flagEmoji(c)} ${c}</span><span class="mono" style="color:var(--blue)">${n} (${Math.round(n/total*100)}%)</span></div><div class="risk-meter"><div class="rm-fill" style="width:${Math.round(n/total*100)}%;background:var(--blue)"></div></div></div>`).join('')
+    :'<div style="text-align:center;padding:20px;color:var(--t3)">No data yet</div>';
+  const devEl=document.getElementById('deviceStats');
+  if(devEl) devEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--t3)">Device tracking requires analytics integration</div>';
+}
+
+// ── IB ────────────────────────────────────────────────────────
+function renderIB() {
+  const el=document.getElementById('ibTable');
+  if(!el) return;
+  el.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:24px">No IB partners yet. Partners who register will appear here.</td></tr>';
+}
+
+// ── COMPLIANCE ────────────────────────────────────────────────
+function renderCompliance() {
+  const checks=[
+    {item:'KYC procedures active',done:true},{item:'AML policy enabled',done:true},
+    {item:'Client risk assessment',done:true},{item:'Deposit/withdrawal monitoring',done:true},
+    {item:'Annual compliance audit',done:false},{item:'Staff AML training',done:false},
+    {item:'Regulatory filing',done:false},
+  ];
+  const el=document.getElementById('complianceList');
+  if(el) el.innerHTML=checks.map(c=>`<div class="activity-item" style="align-items:center"><div style="font-size:14px">${c.done?'✅':'⏳'}</div><div class="act-text" style="color:${c.done?'var(--t1)':'var(--t3)'}">${c.item}</div><span class="tag ${c.done?'tag-green':'tag-gray'}">${c.done?'Done':'Pending'}</span></div>`).join('');
+  const amlEl=document.getElementById('amlAlerts');
+  if(amlEl){
+    const bigDeps=allDeposits.filter(d=>d.amount>5000);
+    amlEl.innerHTML=bigDeps.length?
+      bigDeps.map(d=>`<div class="activity-item"><div class="act-icon" style="background:var(--goldbg)">⚠️</div><div class="act-text"><strong>Large deposit:</strong> $${d.amount} from ${d.userEmail||'—'}</div><div class="act-time">${formatDate(d.createdAt)}</div></div>`).join('')
+      :'<div style="text-align:center;padding:20px;color:var(--t3)">No AML alerts</div>';
+  }
+}
+
+// ── BALANCE MODAL ─────────────────────────────────────────────
+function openBalanceModal(id, name, balance) {
+  selectedClientId = id;
+  document.getElementById('balModal-name').textContent = name;
+  document.getElementById('balModal-bal').textContent = 'Live: $' + parseFloat(balance).toFixed(2);
+  document.getElementById('balanceModal').classList.add('open');
+}
+async function applyBalanceAdjustment() {
+  const type = document.getElementById('balModal-type').value;
+  const amount = parseFloat(document.getElementById('balModal-amount').value)||0;
+  if (!amount) { showToast('⚠️ Enter an amount'); return; }
+  try {
+    const adj = type==='debit' ? -amount : amount;
+    const r = await fetch(`/api/admin/user/${selectedClientId}/balance`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','admin-key':ADMIN_KEY},
+      body:JSON.stringify({amount:adj, accountType:'live'})
+    });
+    if(r.ok){const d=await r.json();showToast(`✅ Live balance adjusted to $${d.balance.toFixed(2)}`);}
+    else showToast('❌ Failed: '+((await r.json()).msg||''));
+  } catch { showToast('❌ Error'); }
+  closeModal('balanceModal');
+  await loadData();
+  renderAccounts();
+}
+
+// ── ADD CLIENT ────────────────────────────────────────────────
+function openAddClientModal(){document.getElementById('addClientModal')?.classList.add('open');}
+async function addClientManual() {
+  const name=document.getElementById('nc-name')?.value.trim();
+  const email=document.getElementById('nc-email')?.value.trim();
+  const country=document.getElementById('nc-country')?.value;
+  if(!name||!email){showToast('⚠️ Name and email required');return;}
+  showToast('⚠️ Use the public registration page for new clients');
+  closeModal('addClientModal');
+}
+
+// ── UTILS ─────────────────────────────────────────────────────
+function openModal(id){document.getElementById(id)?.classList.add('open');}
+function closeModal(id){document.getElementById(id)?.classList.remove('open');}
+function exportClients(){
+  if(!allClients.length){showToast('No clients to export');return;}
+  const rows=[['Name','Email','Country','Live Balance','Demo Balance','KYC','Status','Joined']];
+  allClients.forEach(c=>rows.push([c.fullName,c.email,c.country,(c.liveBalance||0).toFixed(2),(c.demoBalance||10000).toFixed(2),c.kycStatus,c.status||'active',formatDate(c.createdAt)]));
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='velox_clients.csv';a.click();
+}
+function globalSearchFn(q){if(q.length>1){showPanel('clients',null);const el=document.getElementById('clientSearchInput');if(el){el.value=q;renderClientsTable();}}}
+function kycBadge(s){const map={verified:'tag-green',pending:'tag-gold',unverified:'tag-gray',rejected:'tag-red'};const labels={verified:'✓ Verified',pending:'⏳ Pending',unverified:'Unverified',rejected:'✗ Rejected'};return`<span class="tag ${map[s]||'tag-gray'}">${labels[s]||s}</span>`;}
+function flagEmoji(c){const f={Pakistan:'🇵🇰',Bangladesh:'🇧🇩','Sri Lanka':'🇱🇰',Nepal:'🇳🇵',Bhutan:'🇧🇹',Maldives:'🇲🇻'};return f[c]||'🌍';}
+function randomColor(str){const colors=['#4B8BF5','#00E5B0','#FFB547','#8B5CF6','#FF6B35','#FF3D5A'];let h=0;for(let c of(str||''))h=c.charCodeAt(0)+((h<<5)-h);return colors[Math.abs(h)%colors.length];}
+function formatDate(d){if(!d)return'—';const dt=new Date(d);return isNaN(dt)?d:dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit',hour:'2-digit',minute:'2-digit'});}
+
+let toastTimer;
+function showToast(msg){
+  let t=document.getElementById('admin-toast');
+  if(!t){t=document.createElement('div');t.id='admin-toast';t.style.cssText='position:fixed;bottom:20px;right:20px;background:var(--bg3);border:1px solid var(--b2);border-radius:10px;padding:12px 18px;font-size:13px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.5);transform:translateX(120%);transition:transform .3s cubic-bezier(.34,1.56,.64,1)';document.body.appendChild(t);}
+  t.textContent=msg;t.style.transform='translateX(0)';
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{t.style.transform='translateX(120%)';},3500);
+}
+
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(o=>o.classList.remove('open'));});
+
+// ── INIT ──────────────────────────────────────────────────────
+loadData();
+setInterval(()=>{loadData();},30000); // Auto-refresh every 30s
+setInterval(()=>{if(document.getElementById('panel-trading')?.classList.contains('active'))renderLiveTrades();},5000);
 </script>
 </body>
 </html>
