@@ -399,3 +399,69 @@ server.listen(PORT, () => {
   console.log(`\n🚀 Velox on port ${PORT}`);
   setTimeout(connectTD, 500);
 });
+
+// ── PRICE PROXY (Yahoo Finance + CoinGecko via server) ────────
+const https = require('https');
+function httpsGet(url) {
+  return new Promise((res, rej) => {
+    const req = https.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'application/json',
+      }
+    }, (r) => {
+      let data = '';
+      r.on('data', c => data += c);
+      r.on('end', () => {
+        try { res(JSON.parse(data)); } catch { rej(new Error('Parse error')); }
+      });
+    });
+    req.on('error', rej);
+    req.setTimeout(8000, () => { req.destroy(); rej(new Error('Timeout')); });
+  });
+}
+
+// Batch price fetch — called by client
+app.get('/api/prices/yahoo', async (req, res) => {
+  const symbols = (req.query.symbols || '').split(',').filter(Boolean).slice(0, 40);
+  const results = {};
+  await Promise.allSettled(symbols.map(async (yt) => {
+    try {
+      const d = await httpsGet(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yt)}?interval=1m&range=1d`);
+      const meta = d?.chart?.result?.[0]?.meta;
+      if (meta?.regularMarketPrice > 0) results[yt] = meta.regularMarketPrice;
+    } catch {}
+  }));
+  res.json(results);
+});
+
+// OHLC for chart
+app.get('/api/chart/ohlc', async (req, res) => {
+  const { symbol, interval, range } = req.query;
+  if (!symbol) return res.status(400).json({ error: 'symbol required' });
+  try {
+    const d = await httpsGet(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval||'1h'}&range=${range||'5d'}`);
+    const r = d?.chart?.result?.[0];
+    if (!r) return res.status(404).json({ error: 'No data' });
+    const ts = r.timestamp;
+    const q  = r.indicators.quote[0];
+    const candles = [];
+    for (let i = 0; i < ts.length; i++) {
+      if (q.open[i] == null) continue;
+      candles.push({ t: ts[i], o: q.open[i], h: q.high[i], l: q.low[i], c: q.close[i] });
+    }
+    res.json({ candles, price: r.meta?.regularMarketPrice });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// CoinGecko proxy
+app.get('/api/prices/crypto', async (req, res) => {
+  try {
+    const d = await httpsGet('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,solana,ripple,cardano,litecoin,dogecoin,avalanche-2,chainlink,polkadot,uniswap&vs_currencies=usd');
+    res.json(d);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
