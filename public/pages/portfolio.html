@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>My Portfolio — Velox</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#080C14;--bg2:#0D1220;--bg3:#121829;--b1:#1E2A42;--b2:#243354;--t1:#F0F4FF;--t2:#A8B4CC;--t3:#637089;--green:#00E5B0;--gbg:rgba(0,229,176,.1);--gbr:rgba(0,229,176,.25);--red:#FF3D5A;--rbg:rgba(255,61,90,.1);--rbr:rgba(255,61,90,.25);--blue:#4B8BF5;--bbg:rgba(75,139,245,.12);--bbr:rgba(75,139,245,.3);--gold:#FFB547;--goldbg:rgba(255,181,71,.12);--font:'Space Grotesk',sans-serif;--mono:'JetBrains Mono',monospace}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100vh;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--b1)}
+.nav{background:var(--bg2);border-bottom:1px solid var(--b1);padding:0 20px;height:56px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;flex-shrink:0}
+.nav-logo{font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px}
+.logo-box{width:28px;height:28px;background:var(--blue);border-radius:7px;display:flex;align-items:center;justify-content:center}
+.logo-box svg{width:15px;height:15px;fill:#fff}
+.logo-text span{color:var(--blue)}
+.nav-tabs{display:flex;gap:2px;flex:1}
+.nt{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--t2);cursor:pointer;border:none;background:none;font-family:var(--font);transition:.2s}
+.nt:hover,.nt.act{background:var(--bg3);color:var(--t1)}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.back-btn{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--t2);cursor:pointer;border:1px solid var(--b1);background:none;font-family:var(--font);transition:.2s;text-decoration:none}
+.back-btn:hover{border-color:var(--blue);color:var(--blue)}
+.bal-chip{background:var(--bg3);border:1px solid var(--b1);border-radius:8px;padding:4px 12px;text-align:right}
+.bc-l{font-size:9px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.bc-v{font-family:var(--mono);font-size:13px;font-weight:700}
+
+.main{flex:1;overflow-y:auto}
+.panel{display:none}.panel.act{display:block}
+.container{max-width:1100px;margin:0 auto;padding:28px 20px}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.stat-c{background:var(--bg2);border:1px solid var(--b1);border-radius:14px;padding:16px;transition:.2s}
+.stat-c:hover{border-color:var(--b2)}
+.sc-l{font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.sc-v{font-family:var(--mono);font-size:20px;font-weight:800;margin-bottom:3px}
+.sc-sub{font-size:10px;color:var(--t3)}
+.sc-trend{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;font-family:var(--mono);display:inline-block;margin-top:4px}
+.tu{background:var(--gbg);color:var(--green)}.td{background:var(--rbg);color:var(--red)}
+
+/* SECTION */
+.sec{margin-bottom:28px}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.sec-title{font-size:15px;font-weight:700}
+.btn{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:var(--font);transition:.2s;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:#3a7ae8}
+.btn-green{background:var(--green);color:#000}.btn-green:hover{background:#00c49a}
+.btn-ghost{background:none;border:1px solid var(--b1);color:var(--t2)}.btn-ghost:hover{border-color:var(--blue);color:var(--blue)}
+.btn-red{background:var(--rbg);border:1px solid var(--rbr);color:var(--red)}.btn-red:hover{background:var(--red);color:#fff}
+
+/* TABLE */
+.tw{background:var(--bg2);border:1px solid var(--b1);border-radius:14px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{padding:9px 14px;text-align:left;font-size:9px;font-weight:700;color:var(--t3);letter-spacing:.07em;text-transform:uppercase;background:var(--bg3);border-bottom:1px solid var(--b1)}
+td{padding:11px 14px;font-size:12px;border-bottom:1px solid rgba(255,255,255,.025)}
+td.mono{font-family:var(--mono)}
+tr:hover td{background:rgba(255,255,255,.02)}
+tr:last-child td{border:none}
+.tag{padding:3px 8px;border-radius:4px;font-size:9px;font-weight:700;font-family:var(--font)}
+.tag-b{background:var(--gbg);color:var(--green);border:1px solid var(--gbr)}
+.tag-s{background:var(--rbg);color:var(--red);border:1px solid var(--rbr)}
+.tag-g{background:var(--goldbg);color:var(--gold)}
+.close-btn{padding:4px 12px;border-radius:5px;background:var(--rbg);border:1px solid var(--rbr);color:var(--red);font-size:9px;font-weight:700;cursor:pointer;font-family:var(--font)}
+.close-btn:hover{background:var(--red);color:#fff}
+.up{color:var(--green)}.dn{color:var(--red)}
+
+/* HISTORY FILTERS */
+.hf-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.hf{padding:5px 12px;border-radius:100px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--b1);background:none;color:var(--t3);font-family:var(--font);transition:.2s}
+.hf.on{background:var(--bbg);border-color:var(--blue);color:var(--blue)}
+
+/* PERF CARD */
+.perf-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.perf-card{background:var(--bg2);border:1px solid var(--b1);border-radius:14px;padding:20px}
+.pc-title{font-size:13px;font-weight:700;margin-bottom:14px;color:var(--t2)}
+.perf-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
+.perf-item:last-child{border:none}
+.pi-l{color:var(--t2)}.pi-v{font-family:var(--mono);font-weight:600}
+
+/* PIE BARS */
+.alloc-item{margin-bottom:12px}
+.ai-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+.ai-l{color:var(--t2)}.ai-pct{font-family:var(--mono);font-weight:700}
+.ai-bar{height:6px;background:var(--b1);border-radius:3px;overflow:hidden}
+.ai-fill{height:100%;border-radius:3px;transition:width 1s ease}
+
+/* DEPOSIT / WITHDRAW FORM */
+.dw-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dw-card{background:var(--bg2);border:1px solid var(--b1);border-radius:16px;padding:24px}
+.dw-title{font-size:16px;font-weight:700;margin-bottom:4px}
+.dw-sub{font-size:12px;color:var(--t2);margin-bottom:20px}
+.fg{margin-bottom:14px}
+.fg-l{display:block;font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+.fg-i{width:100%;background:var(--bg3);border:1px solid var(--b1);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--t1);font-family:var(--font);outline:none;transition:.2s}
+.fg-i:focus{border-color:var(--blue)}
+.fg-s{width:100%;background:var(--bg3);border:1px solid var(--b1);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--t1);font-family:var(--font);outline:none}
+.meth-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.meth{background:var(--bg3);border:1.5px solid var(--b1);border-radius:8px;padding:10px 6px;text-align:center;cursor:pointer;transition:.2s}
+.meth.on,.meth:hover{border-color:var(--blue);background:var(--bbg)}
+.meth-ic{font-size:18px;margin-bottom:4px}
+.meth-nm{font-size:10px;font-weight:600}
+.meth-tm{font-size:9px;color:var(--t3)}
+.addr-box{background:var(--bg);border:1px solid var(--b1);border-radius:8px;padding:10px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.addr-text{font-family:var(--mono);font-size:10px;color:var(--t2);word-break:break-all;flex:1}
+.copy-btn{padding:4px 10px;background:var(--bbg);border:1px solid var(--bbr);border-radius:5px;color:var(--blue);font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:var(--font)}
+.sub-btn{width:100%;padding:12px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:var(--font);margin-top:6px;transition:.2s}
+.sub-g{background:var(--green);color:#000}.sub-g:hover{background:#00c49a}
+.sub-r{background:var(--red);color:#fff}.sub-r:hover{background:#e02040}
+.form-msg{font-size:12px;text-align:center;margin-top:8px;min-height:14px}
+
+/* TX HISTORY */
+.tx-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg2);border:1px solid var(--b1);border-radius:10px;margin-bottom:6px;transition:.2s}
+.tx-item:hover{border-color:var(--b2)}
+.tx-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.tx-info{flex:1}
+.tx-type{font-size:13px;font-weight:600}
+.tx-meta{font-size:11px;color:var(--t3);margin-top:2px}
+.tx-amount{font-family:var(--mono);font-size:14px;font-weight:700;text-align:right}
+.tx-status{font-size:10px;font-weight:700;text-align:right;margin-top:2px}
+
+/* KYC STATUS */
+.kyc-status-card{background:linear-gradient(135deg,var(--goldbg),var(--bg3));border:1px solid rgba(255,181,71,.3);border-radius:16px;padding:20px;display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.kyc-status-icon{font-size:36px;flex-shrink:0}
+.kyc-status-info h3{font-size:16px;font-weight:700;margin-bottom:4px}
+.kyc-status-info p{font-size:13px;color:var(--t2)}
+
+@media(max-width:900px){.stats-row{grid-template-columns:1fr 1fr}.perf-grid{grid-template-columns:1fr}.dw-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.stats-row{grid-template-columns:1fr}.nav-tabs .nt{padding:6px 8px;font-size:11px}}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="logo-box"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+    <span class="logo-text">Vel<span>ox</span></span>
+  </div>
+  <div class="nav-tabs">
+    <button class="nt act" onclick="setPanel('overview',this)">Overview</button>
+    <button class="nt" onclick="setPanel('positions',this)">Positions</button>
+    <button class="nt" onclick="setPanel('history',this)">History</button>
+    <button class="nt" onclick="setPanel('wallet',this)">Wallet</button>
+    <button class="nt" onclick="setPanel('performance',this)">Performance</button>
+  </div>
+  <div class="nav-right">
+    <div class="bal-chip">
+      <div class="bc-l">Balance</div>
+      <div class="bc-v" id="navBal">$0.00</div>
+    </div>
+    <a href="../dashboard.html" class="back-btn">← Trading</a>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- OVERVIEW -->
+  <div class="panel act" id="p-overview">
+    <div class="container">
+      <div style="margin-bottom:20px">
+        <h1 style="font-size:24px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px">My Portfolio</h1>
+        <p style="font-size:13px;color:var(--t3)" id="userGreet">Welcome back</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-c"><div class="sc-l">Account Balance</div><div class="sc-v" id="ovBal" style="color:var(--green)">$0.00</div><div class="sc-sub">Available to trade</div></div>
+        <div class="stat-c"><div class="sc-l">Open P&L</div><div class="sc-v up" id="ovPL">$0.00</div><div class="sc-sub">From open positions</div></div>
+        <div class="stat-c"><div class="sc-l">Total Deposited</div><div class="sc-v" id="ovDep">$0.00</div><div class="sc-sub">All time deposits</div></div>
+        <div class="stat-c"><div class="sc-l">Open Positions</div><div class="sc-v" id="ovPos" style="color:var(--blue)">0</div><div class="sc-sub">Active trades</div></div>
+      </div>
+
+      <!-- KYC ALERT -->
+      <div class="kyc-status-card" id="kycAlert">
+        <div class="kyc-status-icon">⚠️</div>
+        <div class="kyc-status-info">
+          <h3>Complete KYC Verification</h3>
+          <p>Verify your identity to unlock withdrawals and higher deposit limits. Takes under 5 minutes.</p>
+        </div>
+        <a href="kyc.html" class="btn btn-ghost" style="flex-shrink:0">Verify Now →</a>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <!-- QUICK ACTIONS -->
+        <div class="sec">
+          <div class="sec-hdr"><span class="sec-title">Quick Actions</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <a href="../dashboard.html" class="btn btn-primary" style="justify-content:center;padding:14px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6h-6z"/></svg>
+              Start Trading
+            </a>
+            <button class="btn btn-green" style="justify-content:center;padding:14px" onclick="setPanel('wallet',document.querySelectorAll('.nt')[3])">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              Deposit
+            </button>
+            <a href="kyc.html" class="btn btn-ghost" style="justify-content:center;padding:14px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+              KYC Verify
+            </a>
+            <a href="learn.html" class="btn btn-ghost" style="justify-content:center;padding:14px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>
+              Learn
+            </a>
+          </div>
+        </div>
+
+        <!-- ACCOUNT DETAILS -->
+        <div class="sec">
+          <div class="sec-hdr"><span class="sec-title">Account Details</span></div>
+          <div class="tw" style="padding:0">
+            <div style="padding:10px 14px;border-bottom:1px solid var(--b1);display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--t3)">Account Number</span><span class="mono" style="color:var(--blue)" id="acNum">VLX-000000</span></div>
+            <div style="padding:10px 14px;border-bottom:1px solid var(--b1);display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--t3)">Account Type</span><span style="font-weight:600">Standard</span></div>
+            <div style="padding:10px 14px;border-bottom:1px solid var(--b1);display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--t3)">Leverage</span><span style="font-weight:700;color:var(--gold)">1:500</span></div>
+            <div style="padding:10px 14px;border-bottom:1px solid var(--b1);display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--t3)">Currency</span><span style="font-weight:600">USD</span></div>
+            <div style="padding:10px 14px;border-bottom:1px solid var(--b1);display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--t3)">Email</span><span style="font-weight:600" id="acEmail">—</span></div>
+            <div style="padding:10px 14px;display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--t3)">KYC Status</span><span class="tag tag-g" id="acKYC">Pending</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POSITIONS -->
+  <div class="panel" id="p-positions">
+    <div class="container">
+      <div class="sec-hdr">
+        <h2 style="font-size:20px;font-weight:800">Open Positions</h2>
+        <a href="../dashboard.html" class="btn btn-primary">+ New Trade</a>
+      </div>
+      <div class="stats-row" style="margin-bottom:20px">
+        <div class="stat-c"><div class="sc-l">Open Positions</div><div class="sc-v" id="posCount">0</div></div>
+        <div class="stat-c"><div class="sc-l">Total P&L</div><div class="sc-v up" id="posPL">$0.00</div></div>
+        <div class="stat-c"><div class="sc-l">Margin Used</div><div class="sc-v">$0.00</div></div>
+        <div class="stat-c"><div class="sc-l">Free Margin</div><div class="sc-v" id="posFree">$0.00</div></div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Symbol</th><th>Type</th><th>Lots</th><th>Entry Price</th><th>Current</th><th>P&L</th><th>S/L</th><th>T/P</th><th>Action</th></tr></thead>
+          <tbody id="posTable"><tr><td colspan="9" style="text-align:center;color:var(--t3);padding:32px">No open positions. <a href="../dashboard.html" style="color:var(--blue)">Start trading →</a></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="panel" id="p-history">
+    <div class="container">
+      <div class="sec-hdr">
+        <h2 style="font-size:20px;font-weight:800">Trade History</h2>
+        <button class="btn btn-ghost" onclick="exportHistory()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          Export CSV
+        </button>
+      </div>
+      <div class="hf-row">
+        <button class="hf on" onclick="setHF('all',this)">All</button>
+        <button class="hf" onclick="setHF('buy',this)">Buys</button>
+        <button class="hf" onclick="setHF('sell',this)">Sells</button>
+        <button class="hf" onclick="setHF('forex',this)">Forex</button>
+        <button class="hf" onclick="setHF('crypto',this)">Crypto</button>
+      </div>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Symbol</th><th>Type</th><th>Lots</th><th>Entry Price</th><th>Close Price</th><th>P&L</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody id="histTable"><tr><td colspan="8" style="text-align:center;color:var(--t3);padding:32px">No trade history yet. <a href="../dashboard.html" style="color:var(--blue)">Place your first trade →</a></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- WALLET -->
+  <div class="panel" id="p-wallet">
+    <div class="container">
+      <h2 style="font-size:20px;font-weight:800;margin-bottom:20px">Wallet</h2>
+      <div class="stats-row" style="margin-bottom:24px">
+        <div class="stat-c"><div class="sc-l">Balance</div><div class="sc-v" style="color:var(--green)" id="walBal">$0.00</div></div>
+        <div class="stat-c"><div class="sc-l">Total Deposited</div><div class="sc-v" id="walDep">$0.00</div></div>
+        <div class="stat-c"><div class="sc-l">Total Withdrawn</div><div class="sc-v">$0.00</div></div>
+        <div class="stat-c"><div class="sc-l">Net P&L</div><div class="sc-v up">$0.00</div></div>
+      </div>
+      <div class="dw-grid">
+        <!-- DEPOSIT -->
+        <div class="dw-card">
+          <div class="dw-title">💰 Deposit Funds</div>
+          <div class="dw-sub">Select method · Minimum $10 · Credited within 30 minutes</div>
+          <div class="meth-row">
+            <div class="meth on" onclick="selDM(this,'btc')"><div class="meth-ic">₿</div><div class="meth-nm">Bitcoin</div><div class="meth-tm">~1 hour</div></div>
+            <div class="meth" onclick="selDM(this,'usdt')"><div class="meth-ic">🔷</div><div class="meth-nm">USDT</div><div class="meth-tm">Instant</div></div>
+            <div class="meth" onclick="selDM(this,'eth')"><div class="meth-ic">◆</div><div class="meth-nm">ETH</div><div class="meth-tm">~30 min</div></div>
+          </div>
+          <div id="depAddrBox"></div>
+          <div class="fg"><label class="fg-l">Amount (USD)</label><input class="fg-i" type="number" id="depAmt" placeholder="Min $10" min="10"></div>
+          <div class="fg"><label class="fg-l">Transaction Hash</label><input class="fg-i" type="text" id="depHash" placeholder="Paste TX hash after sending"></div>
+          <button class="sub-btn sub-g" onclick="submitDeposit()">Confirm Deposit</button>
+          <div class="form-msg" id="depMsg"></div>
+        </div>
+        <!-- WITHDRAW -->
+        <div class="dw-card">
+          <div class="dw-title">📤 Withdraw Funds</div>
+          <div class="dw-sub">Processed within 24 hours · Zero fees · KYC required</div>
+          <div class="meth-row" style="grid-template-columns:1fr 1fr">
+            <div class="meth on" onclick="selWM(this,'btc')"><div class="meth-ic">₿</div><div class="meth-nm">Bitcoin</div><div class="meth-tm">~1 hour</div></div>
+            <div class="meth" onclick="selWM(this,'usdt')"><div class="meth-ic">🔷</div><div class="meth-nm">USDT</div><div class="meth-tm">Instant</div></div>
+          </div>
+          <div class="fg"><label class="fg-l">Your Wallet Address</label><input class="fg-i" type="text" id="wdAddr" placeholder="Paste your crypto wallet address"></div>
+          <div class="fg"><label class="fg-l">Amount (USD)</label><input class="fg-i" type="number" id="wdAmt" placeholder="Min $10"></div>
+          <div class="fg"><label class="fg-l">2FA / OTP Code</label><input class="fg-i" type="text" id="wdOTP" placeholder="Enter 6-digit code"></div>
+          <button class="sub-btn sub-r" onclick="submitWithdraw()">Request Withdrawal</button>
+          <div class="form-msg" id="wdMsg"></div>
+          <div style="font-size:10px;color:var(--t3);margin-top:10px;text-align:center">KYC verification required for withdrawals</div>
+        </div>
+      </div>
+
+      <!-- TRANSACTION HISTORY -->
+      <div class="sec-hdr" style="margin-top:24px"><span class="sec-title">Transaction History</span></div>
+      <div id="txHistory">
+        <div class="tx-item">
+          <div class="tx-icon" style="background:var(--gbg)">💰</div>
+          <div class="tx-info"><div class="tx-type">Deposit — USDT</div><div class="tx-meta">Demo deposit · Account created</div></div>
+          <div><div class="tx-amount up">+$10,000.00</div><div class="tx-status" style="color:var(--green)">Completed</div></div>
+        </div>
+        <div style="text-align:center;padding:20px;font-size:12px;color:var(--t3)">Place a deposit to see more transactions here</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERFORMANCE -->
+  <div class="panel" id="p-performance">
+    <div class="container">
+      <h2 style="font-size:20px;font-weight:800;margin-bottom:20px">Performance Analytics</h2>
+
+      <div class="stats-row" style="margin-bottom:24px">
+        <div class="stat-c"><div class="sc-l">Win Rate</div><div class="sc-v" style="color:var(--green)">—%</div><div class="sc-sub">Profitable trades</div></div>
+        <div class="stat-c"><div class="sc-l">Total Trades</div><div class="sc-v">0</div></div>
+        <div class="stat-c"><div class="sc-l">Best Trade</div><div class="sc-v" style="color:var(--green)">$0.00</div></div>
+        <div class="stat-c"><div class="sc-l">Avg Trade</div><div class="sc-v">$0.00</div></div>
+      </div>
+
+      <div class="perf-grid">
+        <div class="perf-card">
+          <div class="pc-title">Trading Statistics</div>
+          <div class="perf-item"><span class="pi-l">Total Trades</span><span class="pi-v">0</span></div>
+          <div class="perf-item"><span class="pi-l">Winning Trades</span><span class="pi-v up">0</span></div>
+          <div class="perf-item"><span class="pi-l">Losing Trades</span><span class="pi-v dn">0</span></div>
+          <div class="perf-item"><span class="pi-l">Win Rate</span><span class="pi-v">—%</span></div>
+          <div class="perf-item"><span class="pi-l">Avg Win</span><span class="pi-v up">$0.00</span></div>
+          <div class="perf-item"><span class="pi-l">Avg Loss</span><span class="pi-v dn">$0.00</span></div>
+          <div class="perf-item"><span class="pi-l">Risk:Reward</span><span class="pi-v">—</span></div>
+          <div class="perf-item"><span class="pi-l">Profit Factor</span><span class="pi-v">—</span></div>
+        </div>
+
+        <div class="perf-card">
+          <div class="pc-title">Portfolio Allocation (by instrument)</div>
+          <div style="font-size:12px;color:var(--t3);text-align:center;padding:24px">
+            📊 Trade more instruments to see allocation analysis
+          </div>
+          <div id="allocChart">
+            <div class="alloc-item"><div class="ai-row"><span class="ai-l">💱 Forex</span><span class="ai-pct">—</span></div><div class="ai-bar"><div class="ai-fill" style="width:0%;background:var(--blue)"></div></div></div>
+            <div class="alloc-item"><div class="ai-row"><span class="ai-l">₿ Crypto</span><span class="ai-pct">—</span></div><div class="ai-bar"><div class="ai-fill" style="width:0%;background:#F7931A"></div></div></div>
+            <div class="alloc-item"><div class="ai-row"><span class="ai-l">🥇 Metals</span><span class="ai-pct">—</span></div><div class="ai-bar"><div class="ai-fill" style="width:0%;background:var(--gold)"></div></div></div>
+            <div class="alloc-item"><div class="ai-row"><span class="ai-l">📈 Indices</span><span class="ai-pct">—</span></div><div class="ai-bar"><div class="ai-fill" style="width:0%;background:var(--green)"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="perf-card" style="margin-bottom:16px">
+        <div class="pc-title">💡 Trading Tips for You</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:4px">
+          <div style="background:var(--bg3);border:1px solid var(--b1);border-radius:10px;padding:14px">
+            <div style="font-size:16px;margin-bottom:6px">🛡️</div>
+            <div style="font-size:12px;font-weight:700;margin-bottom:4px">Risk Management</div>
+            <div style="font-size:11px;color:var(--t2)">Never risk more than 2% of your account on a single trade.</div>
+          </div>
+          <div style="background:var(--bg3);border:1px solid var(--b1);border-radius:10px;padding:14px">
+            <div style="font-size:16px;margin-bottom:6px">📚</div>
+            <div style="font-size:12px;font-weight:700;margin-bottom:4px">Keep Learning</div>
+            <div style="font-size:11px;color:var(--t2)">Complete our education courses to improve your win rate.</div>
+          </div>
+          <div style="background:var(--bg3);border:1px solid var(--b1);border-radius:10px;padding:14px">
+            <div style="font-size:16px;margin-bottom:6px">📋</div>
+            <div style="font-size:12px;font-weight:700;margin-bottom:4px">Trade Journal</div>
+            <div style="font-size:11px;color:var(--t2)">Record every trade and review your decisions regularly.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- main -->
+
+<script>
+const token = localStorage.getItem('token');
+if (!token) { location.href = '../index.html'; }
+let user = {};
+try { user = JSON.parse(localStorage.getItem('user') || '{}'); } catch {}
+let positions = [];
+
+const PRICES = {EURUSD:1.0843,GBPUSD:1.2678,USDJPY:149.23,XAUUSD:2314.5,BTCUSD:67842,ETHUSD:3428.1,WTIUSD:78.42,US30:38420,SPX500:5124,NAS100:17834,AAPL:192.62,TSLA:213.06,NVDA:874.5,SOLUSD:142.3};
+
+function setPanel(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('act'));
+  document.querySelectorAll('.nt').forEach(b => b.classList.remove('act'));
+  document.getElementById('p-' + id).classList.add('act');
+  if (el) el.classList.add('act');
+}
+
+async function loadUser() {
+  try {
+    const r = await fetch('/api/account/me', { headers: { 'x-auth-token': token } });
+    if (r.ok) { const u = await r.json(); user = { ...user, ...u }; localStorage.setItem('user', JSON.stringify(user)); }
+  } catch {}
+  const bal = user.balance || 0;
+  document.getElementById('navBal').textContent = '$' + bal.toFixed(2);
+  document.getElementById('ovBal').textContent = '$' + bal.toFixed(2);
+  document.getElementById('walBal').textContent = '$' + bal.toFixed(2);
+  document.getElementById('walDep').textContent = '$' + bal.toFixed(2);
+  document.getElementById('ovDep').textContent = '$' + bal.toFixed(2);
+  document.getElementById('acEmail').textContent = user.email || '—';
+  document.getElementById('acKYC').textContent = user.kycStatus === 'verified' ? '✓ Verified' : 'Pending';
+  document.getElementById('acKYC').className = 'tag ' + (user.kycStatus === 'verified' ? 'tag-b' : 'tag-g');
+  document.getElementById('acNum').textContent = 'VLX-' + (user.id || '000000').slice(-6).toUpperCase();
+  document.getElementById('posFree').textContent = '$' + bal.toFixed(2);
+  document.getElementById('userGreet').textContent = `Welcome back, ${user.fullName || user.email || 'Trader'}`;
+  if (user.kycStatus === 'verified') document.getElementById('kycAlert').style.display = 'none';
+}
+
+async function loadPositions() {
+  try {
+    const r = await fetch('/api/account/positions', { headers: { 'x-auth-token': token } });
+    if (r.ok) positions = await r.json();
+  } catch { positions = []; }
+  document.getElementById('ovPos').textContent = positions.length;
+  document.getElementById('posCount').textContent = positions.length;
+  renderPositions();
+}
+
+function renderPositions() {
+  const tbody = document.getElementById('posTable');
+  if (!positions.length) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--t3);padding:32px">No open positions. <a href="../dashboard.html" style="color:var(--blue)">Start trading →</a></td></tr>'; document.getElementById('posPL').textContent = '$0.00'; return; }
+  let tpl = 0;
+  tbody.innerHTML = positions.map(p => {
+    const cur = PRICES[p.symbol] || p.avgPrice;
+    const pl = (cur - p.avgPrice) * (p.quantity || 1);
+    tpl += pl;
+    return `<tr><td style="font-weight:700">${p.symbol}</td><td><span class="tag tag-b">BUY</span></td><td class="mono">${p.quantity || 1}</td><td class="mono">${p.avgPrice?.toFixed(5) || '—'}</td><td class="mono">${cur.toFixed(5)}</td><td class="mono ${pl >= 0 ? 'up' : 'dn'}">${pl >= 0 ? '+' : ''}$${Math.abs(pl).toFixed(2)}</td><td class="mono" style="color:var(--t3)">${p.sl || '—'}</td><td class="mono" style="color:var(--t3)">${p.tp || '—'}</td><td><button class="close-btn" onclick="closePos('${p.symbol}',${p.quantity || 1})">Close</button></td></tr>`;
+  }).join('');
+  const plStr = (tpl >= 0 ? '+' : '') + '$' + Math.abs(tpl).toFixed(2);
+  document.getElementById('posPL').textContent = plStr;
+  document.getElementById('posPL').className = 'sc-v ' + (tpl >= 0 ? 'up' : 'dn');
+  document.getElementById('ovPL').textContent = plStr;
+  document.getElementById('ovPL').className = 'sc-v ' + (tpl >= 0 ? 'up' : 'dn');
+}
+
+async function closePos(symbol, quantity) {
+  try {
+    const r = await fetch('/api/trading/order', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': token }, body: JSON.stringify({ symbol, side: 'sell', quantity }) });
+    const d = await r.json();
+    if (r.ok) { user.balance = d.balance; document.getElementById('navBal').textContent = '$' + d.balance.toFixed(2); loadPositions(); toast('✅ Position closed'); }
+    else toast('❌ ' + d.msg);
+  } catch { toast('❌ Error closing position'); }
+}
+
+async function loadHistory() {
+  try {
+    const r = await fetch('/api/account/orders', { headers: { 'x-auth-token': token } });
+    const orders = r.ok ? await r.json() : [];
+    document.getElementById('histTable').innerHTML = orders.length
+      ? orders.map(o => `<tr><td style="font-weight:700">${o.symbol}</td><td><span class="tag ${o.side === 'buy' ? 'tag-b' : 'tag-s'}">${o.side.toUpperCase()}</span></td><td class="mono">${o.quantity}</td><td class="mono">${o.price?.toFixed(5) || '—'}</td><td class="mono">—</td><td class="mono up">—</td><td><span class="tag tag-b">${o.status}</span></td><td style="font-size:11px;color:var(--t3)">${new Date(o.createdAt).toLocaleDateString()}</td></tr>`).join('')
+      : '<tr><td colspan="8" style="text-align:center;color:var(--t3);padding:32px">No trade history yet. <a href="../dashboard.html" style="color:var(--blue)">Place your first trade →</a></td></tr>';
+  } catch {}
+}
+
+function setHF(filter, el) {
+  document.querySelectorAll('.hf').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+}
+
+// DEPOSIT
+const DEP_ADDRS = { btc: 'Set BTC address in platform settings', usdt: 'Set USDT TRC20 address in settings', eth: 'Set ETH ERC20 address in settings' };
+let depM = 'btc';
+function selDM(el, m) { el.closest('.meth-row').querySelectorAll('.meth').forEach(x => x.classList.remove('on')); el.classList.add('on'); depM = m; showDepAddr(); }
+function showDepAddr() {
+  const addr = DEP_ADDRS[depM] || DEP_ADDRS.btc;
+  document.getElementById('depAddrBox').innerHTML = `<div style="font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">${depM.toUpperCase()} Address</div><div class="addr-box"><div class="addr-text">${addr}</div><button class="copy-btn" onclick="navigator.clipboard.writeText('${addr}');this.textContent='Copied!'">Copy</button></div><div style="font-size:10px;color:var(--t3);margin-bottom:12px">Only send ${depM.toUpperCase()} to this address</div>`;
+}
+showDepAddr();
+function selWM(el, m) { el.closest('.meth-row').querySelectorAll('.meth').forEach(x => x.classList.remove('on')); el.classList.add('on'); }
+
+async function submitDeposit() {
+  const amt = parseFloat(document.getElementById('depAmt').value);
+  const hash = document.getElementById('depHash').value.trim();
+  const msg = document.getElementById('depMsg');
+  if (!amt || amt < 10) { msg.style.color = 'var(--red)'; msg.textContent = 'Minimum deposit is $10'; return; }
+  if (!hash) { msg.style.color = 'var(--red)'; msg.textContent = 'Please enter your transaction hash'; return; }
+  msg.style.color = 'var(--t3)'; msg.textContent = 'Submitting...';
+  try {
+    const r = await fetch('/api/account/confirm-deposit', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': token }, body: JSON.stringify({ txHash: hash, amount: amt, currency: 'USD' }) });
+    const d = await r.json();
+    if (r.ok) { msg.style.color = 'var(--green)'; msg.textContent = `✅ Deposit submitted! Balance: $${d.balance.toFixed(2)}`; user.balance = d.balance; document.getElementById('navBal').textContent = '$' + d.balance.toFixed(2); loadUser(); }
+    else { msg.style.color = 'var(--red)'; msg.textContent = d.msg || 'Failed'; }
+  } catch { msg.style.color = 'var(--red)'; msg.textContent = 'Connection error'; }
+}
+
+async function submitWithdraw() {
+  const amt = parseFloat(document.getElementById('wdAmt').value);
+  const addr = document.getElementById('wdAddr').value.trim();
+  const msg = document.getElementById('wdMsg');
+  if (!amt || amt < 10) { msg.style.color = 'var(--red)'; msg.textContent = 'Minimum withdrawal is $10'; return; }
+  if (!addr) { msg.style.color = 'var(--red)'; msg.textContent = 'Enter your wallet address'; return; }
+  msg.style.color = 'var(--green)'; msg.textContent = '✅ Withdrawal request submitted. Processed within 24 hours.';
+}
+
+function exportHistory() { toast('📥 CSV export started'); }
+
+let toastEl;
+function toast(msg) {
+  if (!toastEl) { toastEl = document.createElement('div'); toastEl.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--bg3);border:1px solid var(--b1);border-radius:10px;padding:12px 18px;font-size:13px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.5);transform:translateX(120%);transition:transform .3s cubic-bezier(.34,1.56,.64,1)'; document.body.appendChild(toastEl); }
+  toastEl.textContent = msg; toastEl.style.transform = 'translateX(0)';
+  setTimeout(() => { toastEl.style.transform = 'translateX(120%)'; }, 3500);
+}
+
+// Simulate price updates
+setInterval(() => {
+  for (const s in PRICES) { PRICES[s] *= (1 + (Math.random() - .5) * .001); }
+  if (positions.length) renderPositions();
+}, 2000);
+
+loadUser();
+loadPositions();
+loadHistory();
+</script>
+</body>
+</html>
