@@ -693,37 +693,30 @@ async function loadChart(sym, tf) {
   const interval = YF_INTERVAL[tf] || '1h';
   const range    = YF_RANGE[tf]    || '5d';
   try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=${interval}&range=${range}`;
-    const res = await fetch(url, {signal: AbortSignal.timeout(8000)});
+    // Use server proxy to avoid CORS/IP blocks
+    const url = `/api/chart/ohlc?symbol=${encodeURIComponent(ticker)}&interval=${interval}&range=${range}`;
+    const res = await fetch(url, {signal: AbortSignal.timeout(10000)});
     const d   = await res.json();
-    const r   = d?.chart?.result?.[0];
-    if (!r) throw new Error('No result');
-    const ts = r.timestamp;
-    const q  = r.indicators.quote[0];
-    const candles = [];
-    for (let i = 0; i < ts.length; i++) {
-      if (q.open[i]==null || q.high[i]==null || q.low[i]==null || q.close[i]==null) continue;
-      candles.push({ time:ts[i], open:q.open[i], high:q.high[i], low:q.low[i], close:q.close[i] });
-    }
-    if (candles.length) {
-      lwSeries.setData(candles);
-      lwChart.timeScale().fitContent();
-      // Update price from chart data
-      const last = candles[candles.length-1];
-      if (last && last.close > 0) {
-        prices[sym] = last.close;
-        SEEDS[sym]  = last.close;
-      }
-    }
+    if (!d.candles || !d.candles.length) throw new Error('No candles');
+    const candles = d.candles.map(c => ({time:c.t, open:c.o, high:c.h, low:c.l, close:c.c}));
+    lwSeries.setData(candles);
+    lwChart.timeScale().fitContent();
+    currentCandle = null; // reset live tick tracker
+    if (d.price > 0) { prices[sym] = d.price; SEEDS[sym] = d.price; }
   } catch(e) {
-    // Fallback: show flat line with seed price
+    console.warn('Chart load failed:', e.message);
+    // Fallback: simulate candles from seed price
     const p = prices[sym] || SEEDS[sym] || 1;
     const now = Math.floor(Date.now()/1000);
+    const tfSec2 = TF_SECONDS[tf] || 3600;
     const candles = [];
     for (let i = 60; i >= 0; i--) {
-      candles.push({ time: now - i*3600, open:p, high:p*1.001, low:p*0.999, close:p });
+      const rand = () => 1 + (Math.random() - 0.5) * 0.002;
+      const o = p * rand(), c = p * rand();
+      candles.push({ time: now - i*tfSec2, open:o, high:Math.max(o,c)*1.001, low:Math.min(o,c)*0.999, close:c });
     }
     lwSeries.setData(candles);
+    currentCandle = null;
   }
   updateChartHeader();
 }
@@ -761,39 +754,52 @@ function setTF(tf, el) {
 }
 
 // ── REAL PRICES (Yahoo + CoinGecko) ──────────────────────────
+// YF ticker → internal symbol map
+const YF_SYM_MAP = {
+  'EURUSD=X':'EURUSD','GBPUSD=X':'GBPUSD','USDJPY=X':'USDJPY','USDCHF=X':'USDCHF',
+  'AUDUSD=X':'AUDUSD','USDCAD=X':'USDCAD','NZDUSD=X':'NZDUSD','EURGBP=X':'EURGBP',
+  'EURJPY=X':'EURJPY','GBPJPY=X':'GBPJPY','GC=F':'XAUUSD','SI=F':'XAGUSD',
+  'CL=F':'WTIUSD','BZ=F':'BRENTUSD','NG=F':'NGAS',
+  '^DJI':'US30','^GSPC':'SPX500','^NDX':'NAS100','^GDAXI':'DAX40','^FTSE':'FTSE100',
+  '^N225':'NIKKEI','^AXJO':'ASX200',
+  'AAPL':'AAPL','MSFT':'MSFT','AMZN':'AMZN','GOOGL':'GOOGL','META':'META',
+  'TSLA':'TSLA','NVDA':'NVDA','NFLX':'NFLX','JPM':'JPM','BAC':'BAC',
+};
+
 async function fetchRealPrices() {
-  // Forex + Metals + Energy + Indices + Stocks
-  const batch1 = [
-    ['EURUSD=X','EURUSD'],['GBPUSD=X','GBPUSD'],['USDJPY=X','USDJPY'],
-    ['USDCHF=X','USDCHF'],['AUDUSD=X','AUDUSD'],['USDCAD=X','USDCAD'],
-    ['NZDUSD=X','NZDUSD'],['EURGBP=X','EURGBP'],['EURJPY=X','EURJPY'],['GBPJPY=X','GBPJPY'],
-    ['GC=F','XAUUSD'],['SI=F','XAGUSD'],['CL=F','WTIUSD'],['BZ=F','BRENTUSD'],['NG=F','NGAS'],
-    ['^DJI','US30'],['^GSPC','SPX500'],['^NDX','NAS100'],['^GDAXI','DAX40'],['^FTSE','FTSE100'],
-    ['AAPL','AAPL'],['MSFT','MSFT'],['AMZN','AMZN'],['GOOGL','GOOGL'],['META','META'],
-    ['TSLA','TSLA'],['NVDA','NVDA'],['NFLX','NFLX'],['JPM','JPM'],['BAC','BAC'],
-  ];
-  await Promise.allSettled(batch1.map(async([yt,sym])=>{
-    try {
-      const r = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yt)}?interval=1m&range=1d`,{signal:AbortSignal.timeout(6000)});
-      const d = await r.json();
-      const meta = d?.chart?.result?.[0]?.meta;
-      if (meta?.regularMarketPrice > 0) {
-        prevPrices[sym] = prices[sym];
-        prices[sym] = meta.regularMarketPrice;
-      }
-    } catch {}
-  }));
-  // Crypto
+  // Fetch via server proxy (avoids CORS/IP blocks)
+  const ytSymbols = Object.keys(YF_SYM_MAP).join(',');
   try {
-    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,solana,ripple,cardano,litecoin,dogecoin,avalanche-2,chainlink,polkadot,uniswap,polymatic-network&vs_currencies=usd',{signal:AbortSignal.timeout(8000)});
+    const r = await fetch(`/api/prices/yahoo?symbols=${encodeURIComponent(ytSymbols)}`,
+      {signal: AbortSignal.timeout(10000)});
+    const data = await r.json();
+    for (const [yt, price] of Object.entries(data)) {
+      const sym = YF_SYM_MAP[yt];
+      if (sym && price > 0) {
+        prevPrices[sym] = prices[sym];
+        prices[sym] = price;
+      }
+    }
+  } catch (e) { console.warn('Yahoo proxy failed:', e.message); }
+
+  // Crypto via server proxy
+  try {
+    const r = await fetch('/api/prices/crypto', {signal: AbortSignal.timeout(8000)});
     const d = await r.json();
-    const CG={'bitcoin':'BTCUSD','ethereum':'ETHUSD','binancecoin':'BNBUSD','solana':'SOLUSD','ripple':'XRPUSD','cardano':'ADAUSD','litecoin':'LTCUSD','dogecoin':'DOGEUSD','avalanche-2':'AVAXUSD','chainlink':'LINKUSD','polkadot':'DOTUSD','uniswap':'UNIUSD'};
-    for(const[id,sym] of Object.entries(CG)){if(d[id]?.usd>0){prevPrices[sym]=prices[sym];prices[sym]=d[id].usd;}}
-  } catch {}
+    const CG = {
+      'bitcoin':'BTCUSD','ethereum':'ETHUSD','binancecoin':'BNBUSD','solana':'SOLUSD',
+      'ripple':'XRPUSD','cardano':'ADAUSD','litecoin':'LTCUSD','dogecoin':'DOGEUSD',
+      'avalanche-2':'AVAXUSD','chainlink':'LINKUSD','polkadot':'DOTUSD','uniswap':'UNIUSD'
+    };
+    for (const [id, sym] of Object.entries(CG)) {
+      if (d[id]?.usd > 0) { prevPrices[sym] = prices[sym]; prices[sym] = d[id].usd; }
+    }
+  } catch (e) { console.warn('Crypto proxy failed:', e.message); }
+
   renderUI();
 }
 fetchRealPrices();
-setInterval(fetchRealPrices, 12000);
+setInterval(fetchRealPrices, 15000);
 
 // ── SOCKET.IO ─────────────────────────────────────────────────
 let socket;
