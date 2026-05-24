@@ -659,3 +659,4 @@ tryConnectDB().then(()=>{
     setTimeout(()=>TD_KEY&&TD_KEY.length>10?connectTD():startSim(),500);
   });
 }).catch(()=>{server.listen(PORT);TD_KEY&&TD_KEY.length>10?connectTD():startSim();});
+ 
