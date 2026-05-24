@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Legal Documents — Velox Trade</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#080C14;--bg1:#0F1623;--bg2:#1A2438;--border:#1A2438;--t1:#F0F4FF;--t2:#A8B5CC;--t3:#637089;--gold:#FFB547;--green:#00E5B0;--red:#FF3D5A}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);line-height:1.6}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg1)}::-webkit-scrollbar-thumb{background:var(--bg2)}
+.nav{background:var(--bg1);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
+.nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--t1);font-size:16px;font-weight:800}
+.nav-logo-ic{width:32px;height:32px;background:#FFB547;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.nav-logo-ic svg{width:18px;height:18px;fill:#000}
+.nav-back{margin-left:auto;padding:6px 14px;border-radius:5px;background:var(--bg2);border:1px solid var(--border);color:var(--t2);font-size:12px;cursor:pointer;text-decoration:none}
+.nav-back:hover{color:var(--t1)}
+.hero{background:linear-gradient(135deg,#0F1623 0%,#1A2438 100%);padding:60px 24px;text-align:center;border-bottom:1px solid var(--border)}
+.hero h1{font-size:32px;font-weight:800;margin-bottom:12px}
+.hero p{color:var(--t3);max-width:600px;margin:0 auto;font-size:14px}
+.tabs{display:flex;gap:4px;padding:16px 24px;background:var(--bg1);border-bottom:1px solid var(--border);overflow-x:auto}
+.tab{padding:8px 16px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;border:1px solid var(--border);background:none;color:var(--t3);transition:.15s}
+.tab.on,.tab:hover{background:rgba(255,181,71,.1);border-color:rgba(255,181,71,.3);color:var(--gold)}
+.content{max-width:860px;margin:0 auto;padding:40px 24px}
+.section{display:none}.section.active{display:block}
+h2{font-size:22px;font-weight:700;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+h3{font-size:15px;font-weight:700;margin:24px 0 10px;color:var(--gold)}
+p{color:var(--t2);font-size:14px;margin-bottom:14px}
+ul{color:var(--t2);font-size:14px;margin-bottom:14px;padding-left:20px}
+li{margin-bottom:6px}
+.warning-box{background:rgba(255,61,90,.08);border:1px solid rgba(255,61,90,.2);border-radius:8px;padding:16px;margin-bottom:20px}
+.warning-box p{color:#FF3D5A;margin:0;font-weight:600}
+.info-box{background:rgba(255,181,71,.08);border:1px solid rgba(255,181,71,.2);border-radius:8px;padding:16px;margin-bottom:20px}
+.info-box p{color:var(--gold);margin:0}
+.last-updated{font-size:11px;color:var(--t3);margin-bottom:24px}
+footer{background:var(--bg1);border-top:1px solid var(--border);padding:24px;text-align:center;color:var(--t3);font-size:12px;margin-top:40px}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-logo" href="/"><div class="nav-logo-ic"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>VELOX</a>
+  <a class="nav-back" href="/">← Back to Home</a>
+</nav>
+<div class="hero">
+  <h1>Legal Documents</h1>
+  <p>Important legal information, terms, and policies governing your use of Velox trading services.</p>
+</div>
+<div class="tabs">
+  <button class="tab on" onclick="showTab('terms',this)">Terms of Service</button>
+  <button class="tab" onclick="showTab('privacy',this)">Privacy Policy</button>
+  <button class="tab" onclick="showTab('risk',this)">Risk Disclosure</button>
+  <button class="tab" onclick="showTab('aml',this)">AML Policy</button>
+  <button class="tab" onclick="showTab('execution',this)">Order Execution</button>
+</div>
+<div class="content">
+
+  <div class="section active" id="section-terms">
+    <div class="last-updated">Last updated: May 2025</div>
+    <div class="warning-box"><p>⚠️ Trading CFDs and Forex involves significant risk. Please read all legal documents carefully before trading.</p></div>
+    <h2>Terms of Service</h2>
+    <h3>1. Agreement</h3>
+    <p>By accessing or using Velox Trade services, you agree to be bound by these Terms of Service. Velox Global Ltd ("Velox", "we", "us") is incorporated in St. Vincent and the Grenadines. These terms constitute a legally binding agreement between you and Velox.</p>
+    <h3>2. Eligibility</h3>
+    <p>You must be at least 18 years of age to use our services. Our services are available to residents of Pakistan, Bangladesh, Sri Lanka, Nepal, Bhutan, and the Maldives only. Users from the United States, Canada, EU, UK, Australia, Japan, and India are explicitly excluded.</p>
+    <h3>3. Account Registration</h3>
+    <p>You agree to provide accurate, current, and complete information during registration. You are responsible for maintaining the confidentiality of your account credentials and for all activities occurring under your account.</p>
+    <h3>4. Trading Services</h3>
+    <p>Velox provides access to CFD (Contract for Difference) trading on Forex, Commodities, Indices, and Cryptocurrencies. All trades are executed as CFDs — you do not own the underlying asset. Leverage is available up to 1:2000 on select instruments.</p>
+    <h3>5. Deposits and Withdrawals</h3>
+    <p>Deposits are accepted via cryptocurrency only (Bitcoin, USDT TRC20). Withdrawals are processed within 24 business hours. Minimum withdrawal is $10. KYC verification is required for withdrawals.</p>
+    <h3>6. Termination</h3>
+    <p>We reserve the right to suspend or terminate accounts that violate these terms, engage in fraudulent activity, or are subject to legal proceedings in their jurisdiction.</p>
+    <h3>7. Liability Limitation</h3>
+    <p>Velox shall not be liable for any indirect, incidental, or consequential losses arising from trading activities. Your total liability claim against Velox shall not exceed the total deposits made in the 12 months preceding the claim.</p>
+  </div>
+
+  <div class="section" id="section-privacy">
+    <div class="last-updated">Last updated: May 2025</div>
+    <h2>Privacy Policy</h2>
+    <h3>1. Information We Collect</h3>
+    <p>We collect personal information including name, email address, country of residence, and government-issued ID documents for KYC verification. We also collect trading activity, deposit/withdrawal history, and device/browser information.</p>
+    <h3>2. How We Use Your Information</h3>
+    <ul>
+      <li>Account creation and verification</li>
+      <li>Processing deposits and withdrawals</li>
+      <li>KYC/AML compliance</li>
+      <li>Customer support communications</li>
+      <li>Platform improvement and analytics</li>
+    </ul>
+    <h3>3. Data Security</h3>
+    <p>We implement industry-standard security measures including 256-bit SSL encryption, two-factor authentication, and regular security audits. Passwords are hashed using bcrypt. We never store raw payment credentials.</p>
+    <h3>4. Data Sharing</h3>
+    <p>We do not sell or rent your personal information. We may share data with regulatory authorities when legally required, with payment processors for transaction completion, and with identity verification services for KYC compliance.</p>
+    <h3>5. Your Rights</h3>
+    <p>You have the right to access, correct, or delete your personal data. Contact support@veloxtrade.com to exercise these rights. Account deletion requests are processed within 30 days.</p>
+    <h3>6. Cookies</h3>
+    <p>We use essential cookies for session management and analytics cookies to improve our platform. You can disable non-essential cookies in your browser settings.</p>
+  </div>
+
+  <div class="section" id="section-risk">
+    <div class="last-updated">Last updated: May 2025</div>
+    <div class="warning-box"><p>⚠️ HIGH RISK WARNING: CFD trading carries significant risk of loss. 74–89% of retail investor accounts lose money trading CFDs. Only trade with money you can afford to lose.</p></div>
+    <h2>Risk Disclosure Statement</h2>
+    <h3>1. CFD Trading Risks</h3>
+    <p>Contracts for Difference (CFDs) are leveraged products. This means a small deposit can give you much larger market exposure. While leverage can magnify profits, it also magnifies losses which can exceed your initial deposit.</p>
+    <h3>2. Leverage Risk</h3>
+    <p>Velox offers leverage up to 1:2000 on Forex pairs. At this leverage, a 0.05% adverse price movement can result in a 100% loss of your margin. Always use stop losses when trading with leverage.</p>
+    <h3>3. Market Risk</h3>
+    <p>Financial markets are subject to rapid and unpredictable price movements caused by economic data, political events, natural disasters, and market sentiment. Past performance is not indicative of future results.</p>
+    <h3>4. Cryptocurrency Risk</h3>
+    <p>Cryptocurrency markets are highly volatile and largely unregulated. Prices can move 20–50% in a single day. Regulatory changes in any jurisdiction can significantly impact crypto asset values.</p>
+    <h3>5. Liquidity Risk</h3>
+    <p>During periods of extreme market volatility, spreads may widen significantly and orders may not be filled at the requested price. This is known as slippage.</p>
+    <h3>6. Technology Risk</h3>
+    <p>Trading platforms, internet connections, and electronic systems can fail. You should have contingency plans for accessing your account during platform outages.</p>
+  </div>
+
+  <div class="section" id="section-aml">
+    <div class="last-updated">Last updated: May 2025</div>
+    <h2>Anti-Money Laundering (AML) Policy</h2>
+    <div class="info-box"><p>Velox is committed to preventing money laundering, terrorist financing, and other financial crimes.</p></div>
+    <h3>1. KYC Requirements</h3>
+    <p>All clients must complete Know Your Customer (KYC) verification before making withdrawals. Required documents include a government-issued photo ID (passport or national ID card) and proof of address (utility bill or bank statement less than 3 months old).</p>
+    <h3>2. Source of Funds</h3>
+    <p>For deposits exceeding $1,000, we may request documentation proving the legitimate source of funds. This may include salary slips, bank statements, or business ownership documents.</p>
+    <h3>3. Suspicious Activity</h3>
+    <p>We monitor all transactions for suspicious patterns including unusual deposit/withdrawal frequency, transactions inconsistent with trading activity, and deposits from multiple sources. Suspicious activity is reported to relevant authorities.</p>
+    <h3>4. PEP Screening</h3>
+    <p>Politically Exposed Persons (PEPs) and individuals on international sanctions lists are subject to enhanced due diligence and may be refused service.</p>
+    <h3>5. Record Keeping</h3>
+    <p>We maintain records of all transactions and KYC documentation for a minimum of 5 years in accordance with international standards.</p>
+  </div>
+
+  <div class="section" id="section-execution">
+    <div class="last-updated">Last updated: May 2025</div>
+    <h2>Order Execution Policy</h2>
+    <h3>1. Execution Model</h3>
+    <p>Velox operates as a Straight-Through Processing (STP) broker. Your orders are passed directly to liquidity providers without a dealing desk. We do not take the opposite side of your trades.</p>
+    <h3>2. Execution Speed</h3>
+    <p>Under normal market conditions, market orders are executed within 25 milliseconds. During periods of high volatility or low liquidity, execution times may increase.</p>
+    <h3>3. Slippage</h3>
+    <p>Slippage may occur when the market moves between the time you place an order and when it is executed. This can be positive or negative. We implement best execution practices to minimise negative slippage.</p>
+    <h3>4. Order Types</h3>
+    <p>We currently offer Market Orders only. All orders are filled at the best available market price at the time of execution.</p>
+    <h3>5. Trading Hours</h3>
+    <p>Forex and Metals: 24 hours, Monday–Friday. Cryptocurrencies: 24/7. Indices and Stocks: Follow exchange hours. Spreads may be wider outside regular trading hours.</p>
+  </div>
+
+</div>
+<footer>© 2025 Velox Global Ltd. All rights reserved. Incorporated in St. Vincent and the Grenadines.</footer>
+<script>
+function showTab(id, el) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('section-'+id).classList.add('active');
+  el.classList.add('on');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mobile App — Velox Trade</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#080C14;--bg1:#0F1623;--bg2:#1A2438;--border:#1A2438;--t1:#F0F4FF;--t2:#A8B5CC;--t3:#637089;--gold:#FFB547;--green:#00E5B0;--blue:#4B8BF5}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);line-height:1.6}
+.nav{background:var(--bg1);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
+.nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--t1);font-size:16px;font-weight:800}
+.nav-logo-ic{width:32px;height:32px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.nav-logo-ic svg{width:18px;height:18px;fill:#000}
+.nav-back{margin-left:auto;padding:6px 14px;border-radius:5px;background:var(--bg2);border:1px solid var(--border);color:var(--t2);font-size:12px;cursor:pointer;text-decoration:none}
+.hero{padding:80px 24px;text-align:center;background:linear-gradient(135deg,#0F1623,#1A2438)}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;background:rgba(75,139,245,.1);border:1px solid rgba(75,139,245,.3);color:var(--blue);font-size:11px;font-weight:700;letter-spacing:.06em;margin-bottom:20px}
+.hero h1{font-size:40px;font-weight:800;margin-bottom:16px;line-height:1.1}
+.hero h1 span{color:var(--gold)}
+.hero p{color:var(--t2);max-width:500px;margin:0 auto 32px;font-size:15px}
+.store-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.store-btn{display:flex;align-items:center;gap:10px;padding:12px 24px;border-radius:10px;background:var(--bg2);border:1px solid var(--border);cursor:pointer;text-decoration:none;transition:.2s}
+.store-btn:hover{border-color:var(--gold);background:rgba(255,181,71,.05)}
+.store-btn-icon{font-size:28px}
+.store-btn-text{text-align:left}
+.store-btn-sub{font-size:10px;color:var(--t3)}
+.store-btn-name{font-size:14px;font-weight:700}
+.coming-tag{display:inline-block;padding:2px 8px;border-radius:10px;background:rgba(255,181,71,.1);color:var(--gold);font-size:10px;font-weight:700;border:1px solid rgba(255,181,71,.3);margin-left:8px}
+.features{padding:60px 24px;max-width:1000px;margin:0 auto}
+.features h2{text-align:center;font-size:26px;font-weight:800;margin-bottom:8px}
+.features-sub{text-align:center;color:var(--t3);margin-bottom:40px}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:700px){.feat-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.feat-grid{grid-template-columns:1fr}.hero h1{font-size:28px}}
+.feat-card{background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:20px}
+.feat-ic{font-size:28px;margin-bottom:12px}
+.feat-title{font-size:13px;font-weight:700;margin-bottom:6px}
+.feat-desc{font-size:12px;color:var(--t3);line-height:1.5}
+.notify-section{padding:60px 24px;text-align:center;border-top:1px solid var(--border)}
+.notify-section h2{font-size:24px;font-weight:800;margin-bottom:12px}
+.notify-section p{color:var(--t3);margin-bottom:24px}
+.notify-form{display:flex;gap:8px;max-width:400px;margin:0 auto;justify-content:center;flex-wrap:wrap}
+.notify-inp{flex:1;min-width:200px;background:var(--bg1);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:13px;color:var(--t1);outline:none}
+.notify-inp:focus{border-color:var(--gold)}
+.notify-btn{padding:10px 20px;border-radius:6px;background:var(--gold);border:none;color:#000;font-size:13px;font-weight:700;cursor:pointer}
+.notify-btn:hover{background:#d4a00a}
+.web-cta{padding:60px 24px;text-align:center;background:var(--bg1);border-top:1px solid var(--border)}
+.web-cta h2{font-size:22px;font-weight:700;margin-bottom:12px}
+.web-cta p{color:var(--t3);margin-bottom:20px}
+.cta-btn{display:inline-block;padding:12px 28px;border-radius:8px;background:var(--green);border:none;color:#000;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none}
+.cta-btn:hover{background:#00c99a}
+footer{background:var(--bg);border-top:1px solid var(--border);padding:24px;text-align:center;color:var(--t3);font-size:12px}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-logo" href="/"><div class="nav-logo-ic"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>VELOX</a>
+  <a class="nav-back" href="/">← Back</a>
+</nav>
+<div class="hero">
+  <div class="hero-badge">📱 MOBILE APP</div>
+  <h1>Trade Anywhere,<br><span>Anytime</span></h1>
+  <p>Full-featured trading platform in your pocket. Live prices, one-tap execution, instant deposits — all on iOS & Android.</p>
+  <div class="store-btns">
+    <a class="store-btn" href="#notify">
+      <div class="store-btn-icon">🍎</div>
+      <div class="store-btn-text"><div class="store-btn-sub">Coming Soon to the</div><div class="store-btn-name">App Store <span class="coming-tag">SOON</span></div></div>
+    </a>
+    <a class="store-btn" href="#notify">
+      <div class="store-btn-icon">🤖</div>
+      <div class="store-btn-text"><div class="store-btn-sub">Coming Soon to</div><div class="store-btn-name">Google Play <span class="coming-tag">SOON</span></div></div>
+    </a>
+  </div>
+</div>
+<div class="features">
+  <h2>Everything you need to trade</h2>
+  <p class="features-sub">The Velox mobile app will bring the full desktop experience to your phone</p>
+  <div class="feat-grid">
+    <div class="feat-card"><div class="feat-ic">📊</div><div class="feat-title">Live Charts</div><div class="feat-desc">Real-time candlestick charts with multiple timeframes and technical indicators</div></div>
+    <div class="feat-card"><div class="feat-ic">⚡</div><div class="feat-title">One-Tap Trading</div><div class="feat-desc">Execute market orders instantly with a single tap. Set SL/TP in seconds</div></div>
+    <div class="feat-card"><div class="feat-ic">🔔</div><div class="feat-title">Push Notifications</div><div class="feat-desc">Get instant alerts when SL/TP hits, deposits are approved, or prices reach your targets</div></div>
+    <div class="feat-card"><div class="feat-ic">💰</div><div class="feat-title">Instant Deposits</div><div class="feat-desc">Deposit BTC or USDT directly from your crypto wallet app to your trading account</div></div>
+    <div class="feat-card"><div class="feat-ic">🌙</div><div class="feat-title">Dark & Light Mode</div><div class="feat-desc">Optimized UI for both day and night trading with reduced eye strain</div></div>
+    <div class="feat-card"><div class="feat-ic">🔐</div><div class="feat-title">Biometric Login</div><div class="feat-desc">Face ID and fingerprint authentication for fast, secure account access</div></div>
+  </div>
+</div>
+<div class="notify-section" id="notify">
+  <h2>Get notified at launch</h2>
+  <p>Enter your email to be the first to know when the app is available</p>
+  <div class="notify-form">
+    <input class="notify-inp" type="email" id="notifyEmail" placeholder="your@email.com">
+    <button class="notify-btn" onclick="notify()">Notify Me</button>
+  </div>
+  <p id="notifyMsg" style="margin-top:12px;font-size:12px;color:var(--green)"></p>
+</div>
+<div class="web-cta">
+  <h2>Trade now on Web</h2>
+  <p>While the app is in development, trade on our full-featured web platform</p>
+  <a class="cta-btn" href="/#">Open Web Trader →</a>
+</div>
+<footer>© 2025 Velox Global Ltd. Mobile app coming soon.</footer>
+<script>
+function notify() {
+  const email = document.getElementById('notifyEmail').value;
+  if (!email || !email.includes('@')) { document.getElementById('notifyMsg').textContent = 'Please enter a valid email.'; document.getElementById('notifyMsg').style.color='var(--red)'; return; }
+  document.getElementById('notifyMsg').textContent = '✅ You\'re on the list! We\'ll email you when the app launches.';
+  document.getElementById('notifyMsg').style.color='var(--green)';
+  document.getElementById('notifyEmail').value = '';
+}
+</script>
+</body>
+</html>
