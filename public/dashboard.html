@@ -67,7 +67,7 @@ a{text-decoration:none;color:inherit}
 .tn-logout{background:var(--bg2);border:1px solid var(--border);color:var(--t3);padding:5px 10px;border-radius:4px;font-size:11px;cursor:pointer}.tn-logout:hover{color:var(--t1)}
 
 /* ── LEFT SIDEBAR ── */
-.lsb{background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.lsb{background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;height:100%}
 .lsb-search{padding:8px}
 .lsb-inp{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:6px 8px 6px 28px;font-size:12px;color:var(--t1);outline:none;transition:.15s;position:relative}
 .lsb-inp::placeholder{color:var(--t3)}
@@ -109,7 +109,7 @@ a{text-decoration:none;color:inherit}
 .tf.on,.tf:hover{background:var(--bg3);color:var(--t1)}
 
 /* CHART */
-#chartBox{flex:1;min-height:0;position:relative;overflow:hidden;display:flex;flex-direction:column}
+#chartBox{flex:1;min-height:0;position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:350px}
 #tv_chart{width:100%;height:100%;flex:1;min-height:0}
 .chart-spinner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;background:var(--bg0)}
 .chart-spinner .spin{width:24px;height:24px;border:2px solid var(--bg3);border-top-color:var(--yellow);border-radius:50%;animation:spin .7s linear infinite}
@@ -140,7 +140,7 @@ tr:hover td{background:var(--bg2)}
 .close-btn:hover{background:var(--red);color:#fff}
 
 /* ── RIGHT PANEL ── */
-.rp{background:var(--bg1);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.rp{background:var(--bg1);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;height:100%}
 .rp-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
 .rpt{flex:1;padding:9px 5px;text-align:center;font-size:11px;font-weight:600;cursor:pointer;color:var(--t3);border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;transition:.15s}
 .rpt.on{color:var(--yellow);border-bottom-color:var(--yellow)}
@@ -419,14 +419,8 @@ tr:hover td{background:var(--bg2)}
     </div>
   </div>
   <!-- Chart -->
-  <div id="chartBox" style="flex:1;position:relative;overflow:hidden;min-height:350px">
-    <iframe id="tv_iframe"
-      src="https://s.tradingview.com/widgetembed/?frameElementId=tv_iframe&symbol=FX%3AEURUSD&interval=60&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=0&saveimage=0&toolbarbg=181a20&studies=RSI%40tv-basicstudies%1FMACD%40tv-basicstudies&theme=dark&style=1&timezone=Etc%2FUTC&studies_overrides=%7B%7D&overrides=%7B%7D&enabled_features=%5B%5D&disabled_features=%5B%5D&locale=en&utm_source=veloxtrade.onrender.com"
-      style="width:100%;height:100%;border:none;display:block;min-height:350px"
-      allowtransparency="true"
-      frameborder="0"
-      id="tv_chart">
-    </iframe>
+  <div id="chartBox" style="flex:1;position:relative;overflow:hidden;min-height:350px;display:flex;flex-direction:column">
+    <div id="tv_chart" style="width:100%;flex:1;min-height:350px"></div>
   </div>
   <!-- Bottom panel -->
   <div class="bp">
@@ -1207,36 +1201,115 @@ function renderSignals(){
 }
 
 // ── CHART ─────────────────────────────────────────────
-// TradingView chart via iframe embed - 100% reliable, no height issues
-const TV_INTERVALS = {
-  '1':'1','5':'5','15':'15','60':'60','240':'240','D':'1D','W':'1W'
-};
+// ── TRADINGVIEW ADVANCED CHART ─────────────────────────────────
+// Uses the official TradingView widget script injected into a self-contained div
+// This is how Binance, eToro, and all major platforms embed TradingView
 
-function loadChart(sym, tf) {
-  const iframe = document.getElementById('tv_iframe');
-  if (!iframe) return;
+let tvScriptLoaded = false;
+let tvScriptLoading = false;
+let pendingChart = null;
 
-  const tvSym = encodeURIComponent(TV_MAP[sym] || 'FX:EURUSD');
-  const interval = TV_INTERVALS[tf] || '60';
-
-  const src = `https://s.tradingview.com/widgetembed/?` +
-    `frameElementId=tv_iframe` +
-    `&symbol=${tvSym}` +
-    `&interval=${interval}` +
-    `&hidesidetoolbar=0` +
-    `&hidetoptoolbar=0` +
-    `&symboledit=0` +
-    `&saveimage=0` +
-    `&toolbarbg=181a20` +
-    `&studies=RSI%40tv-basicstudies%1FMACD%40tv-basicstudies` +
-    `&theme=dark` +
-    `&style=1` +
-    `&timezone=Etc%2FUTC` +
-    `&locale=en` +
-    `&utm_source=veloxtrade.onrender.com`;
-
-  iframe.src = src;
+function loadTVScript(cb) {
+  if (tvScriptLoaded) { cb(); return; }
+  if (tvScriptLoading) { pendingChart = cb; return; }
+  tvScriptLoading = true;
+  const s = document.createElement('script');
+  s.src = 'https://s3.tradingview.com/tv.js';
+  s.async = true;
+  s.onload = () => {
+    tvScriptLoaded = true;
+    tvScriptLoading = false;
+    cb();
+    if (pendingChart) { pendingChart(); pendingChart = null; }
+  };
+  s.onerror = () => {
+    tvScriptLoading = false;
+    const el = document.getElementById('tv_chart');
+    if (el) el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:300px;color:#848e9c;font-size:13px;flex-direction:column;gap:8px"><span style="font-size:24px">📡</span>Chart requires internet connection</div>';
+  };
+  document.head.appendChild(s);
 }
+
+let tvWidget = null;
+function loadChart(sym, tf) {
+  const container = document.getElementById('tv_chart');
+  if (!container) return;
+
+  // Clear previous widget
+  if (tvWidget) {
+    try { tvWidget.remove(); } catch(e) {}
+    tvWidget = null;
+  }
+  container.innerHTML = '';
+
+  // Show loading state
+  container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:300px;color:#637089;font-size:12px;gap:8px"><div style="width:20px;height:20px;border:2px solid #2b2f36;border-top-color:#f0b90b;border-radius:50%;animation:spin .7s linear infinite"></div>Loading chart...</div>';
+
+  loadTVScript(() => {
+    container.innerHTML = '';
+
+    // Calculate real pixel height for TradingView widget
+    const box = document.getElementById('chartBox');
+    const bp = document.querySelector('.bp');
+    const hdr = document.querySelector('.chart-header');
+    const banner = document.getElementById('demoBanner');
+    
+    // Available height = full window - topnav(48) - chart-header - demo-banner - bottom-panel
+    const topnavH = 48;
+    const hdrH = hdr ? hdr.getBoundingClientRect().height : 40;
+    const bannerH = (banner && !banner.classList.contains('hidden')) ? banner.getBoundingClientRect().height : 0;
+    const bpH = bp ? bp.getBoundingClientRect().height : 200;
+    const chartH = Math.max(window.innerHeight - topnavH - hdrH - bannerH - bpH, 300);
+    
+    container.style.height = chartH + 'px';
+    container.style.minHeight = chartH + 'px';
+
+    try {
+      tvWidget = new TradingView.widget({
+        width: '100%',
+        height: chartH,
+        symbol: TV_MAP[sym] || 'FX:EURUSD',
+        interval: tf === 'D' ? '1D' : tf === 'W' ? '1W' : tf,
+        timezone: 'Etc/UTC',
+        theme: 'dark',
+        style: '1',
+        locale: 'en',
+        toolbar_bg: '#181a20',
+        enable_publishing: false,
+        allow_symbol_change: false,
+        container_id: 'tv_chart',
+        backgroundColor: '#0b0e11',
+        gridColor: 'rgba(43,47,54,0.4)',
+        studies: ['RSI@tv-basicstudies', 'MACD@tv-basicstudies'],
+        hide_top_toolbar: false,
+        save_image: false,
+        overrides: {
+          'paneProperties.background': '#0b0e11',
+          'paneProperties.backgroundType': 'solid',
+          'paneProperties.vertGridProperties.color': 'rgba(43,47,54,0.4)',
+          'paneProperties.horzGridProperties.color': 'rgba(43,47,54,0.4)',
+          'scalesProperties.textColor': '#848e9c',
+        }
+      });
+    } catch(e) {
+      console.error('TV error:', e);
+      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:300px;color:#848e9c">Chart unavailable</div>';
+    }
+  });
+}
+
+// Watch for chartBox resize and reload chart if height changes significantly
+let lastChartH = 0;
+const chartResizeObs = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(entries => {
+  for (const entry of entries) {
+    const h = entry.contentRect.height;
+    if (h > 50 && Math.abs(h - lastChartH) > 20) {
+      lastChartH = h;
+      const container = document.getElementById('tv_chart');
+      if (container) container.style.height = h + 'px';
+    }
+  }
+}) : null;
 
 
 function setTF(tf,el){document.querySelectorAll('.tf').forEach(b=>b.classList.remove('on'));if(el)el.classList.add('on');currentTF=tf;loadChart(currentSym,tf);}
@@ -1429,10 +1502,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Connect socket immediately
   setTimeout(initSocket, 200);
 
-  // Load chart - iframe approach is immediate, no timing needed
-  loadChart('EURUSD', '60');
+  // Attach resize observer to chartBox
+  const chartBox = document.getElementById('chartBox');
+  if (chartResizeObs && chartBox) chartResizeObs.observe(chartBox);
 
-  // Start fetching real prices
+  // Load chart after layout is painted
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      loadChart('EURUSD', '60');
+    });
+  });
+
+  // Fetch real prices
   fetchBrowserPrices();
 });
 </script>
