@@ -728,12 +728,28 @@ async function loadChart(sym, tf) {
   updateChartHeader();
 }
 
-// Live tick update on chart
+// Live tick — update the CURRENT candle (snap to timeframe boundary, not new candle every second)
+const TF_SECONDS = {'1':60,'5':300,'15':900,'60':3600,'240':14400,'D':86400,'W':604800};
+let currentCandle = null; // {time, open, high, low, close}
+
 function tickChart() {
   if (!lwSeries || !currentSym) return;
   const p = prices[currentSym];
   if (!p) return;
-  lwSeries.update({ time: Math.floor(Date.now()/1000), open:p, high:p, low:p, close:p });
+  const tfSec = TF_SECONDS[currentTF] || 3600;
+  // Snap timestamp to current candle boundary
+  const candleTime = Math.floor(Date.now() / 1000 / tfSec) * tfSec;
+
+  if (!currentCandle || currentCandle.time !== candleTime) {
+    // New candle period — start fresh
+    currentCandle = { time: candleTime, open: p, high: p, low: p, close: p };
+  } else {
+    // Update existing candle
+    currentCandle.high  = Math.max(currentCandle.high, p);
+    currentCandle.low   = Math.min(currentCandle.low, p);
+    currentCandle.close = p;
+  }
+  lwSeries.update(currentCandle);
 }
 setInterval(tickChart, 1000);
 
@@ -787,9 +803,15 @@ function initSocket() {
   socket.on('prices', d => {
     if (!d?.p) return;
     setLive(d.live||false);
-    if (d.live) { // Only use server prices when Twelve Data is live
+    if (d.live) {
+      // Twelve Data reliable for forex & crypto only
+      // Yahoo Finance preferred for metals/energy/indices/stocks
+      const TD_SYMS = ['EURUSD','GBPUSD','USDJPY','USDCHF','AUDUSD','USDCAD','NZDUSD',
+        'EURGBP','EURJPY','GBPJPY','BTCUSD','ETHUSD','BNBUSD','SOLUSD','XRPUSD'];
       prevPrices = {...prices};
-      Object.assign(prices, d.p);
+      for (const sym of TD_SYMS) {
+        if (d.p[sym] && d.p[sym] > 0) prices[sym] = d.p[sym];
+      }
       renderUI();
     }
   });
