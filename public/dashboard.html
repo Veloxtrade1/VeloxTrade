@@ -313,7 +313,7 @@ tr:hover td{background:var(--bg2)}
       <button class="tf" onclick="setTF('W',this)">1W</button>
     </div>
   </div>
-  <div id="chartBox"><div id="lwChart"></div></div>
+  <div id="chartBox" style="flex:1;min-height:0;overflow:hidden"><div id="lwChart" style="width:100%;height:100%"></div></div>
   <div class="bp">
     <div class="bp-tabs">
       <div class="bp-tab on" onclick="setBPTab('positions',this)">Positions <span id="posCnt" style="background:var(--yellow);color:#000;padding:1px 6px;border-radius:8px;font-size:9px;margin-left:3px">0</span></div>
@@ -662,8 +662,9 @@ function createLWChart() {
   const container = document.getElementById('lwChart');
   if (!container || !window.LightweightCharts) return;
   if (lwChart) { lwChart.remove(); lwChart = null; lwSeries = null; }
-  const w = container.offsetWidth  || document.getElementById('chartBox').offsetWidth || 800;
-  const h = container.offsetHeight || document.getElementById('chartBox').offsetHeight || 400;
+  const box = document.getElementById('chartBox');
+  const w = box.offsetWidth  || window.innerWidth - 520 || 800;
+  const h = box.offsetHeight || window.innerHeight - 280 || 400;
   lwChart = LightweightCharts.createChart(container, {
     width: w, height: h,
     layout: { background:{type:'solid',color:'#0b0e11'}, textColor:'#848e9c' },
@@ -678,17 +679,19 @@ function createLWChart() {
     wickUpColor:'#0ecb81', wickDownColor:'#f6465d',
   });
   // Resize
-  new ResizeObserver(() => {
-    if (!lwChart) return;
-    const bx = document.getElementById('chartBox');
-    if (bx) lwChart.resize(bx.offsetWidth, bx.offsetHeight);
-  }).observe(document.getElementById('chartBox'));
+  const chartBox = document.getElementById('chartBox');
+  new ResizeObserver(entries => {
+    if (!lwChart || !entries[0]) return;
+    const {width, height} = entries[0].contentRect;
+    if (width > 100 && height > 100) lwChart.resize(width, height);
+  }).observe(chartBox);
 }
 
 async function loadChart(sym, tf) {
   if (!lwSeries) createLWChart();
   if (!lwSeries) return;
   currentSym = sym; currentTF = tf;
+  currentCandle = null; // reset on every load
   const ticker   = YF_MAP[sym] || sym;
   const interval = YF_INTERVAL[tf] || '1h';
   const range    = YF_RANGE[tf]    || '5d';
