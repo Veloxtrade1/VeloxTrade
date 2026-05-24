@@ -109,8 +109,8 @@ a{text-decoration:none;color:inherit}
 .tf.on,.tf:hover{background:var(--bg3);color:var(--t1)}
 
 /* CHART */
-#chartBox{flex:1;min-height:350px;position:relative}
-#tv_chart{position:relative;display:block}
+#chartBox{flex:1;min-height:350px}
+#tv_chart{width:100%;height:100%;flex:1;min-height:0}
 @keyframes spin{to{transform:rotate(360deg)}}
 .chart-spinner p{font-size:11px;color:var(--t3)}
 
@@ -417,8 +417,15 @@ tr:hover td{background:var(--bg2)}
     </div>
   </div>
   <!-- Chart -->
-  <div id="chartBox" style="flex:1;position:relative;min-height:350px">
-    <div id="tv_chart"></div>
+  <div id="chartBox" style="flex:1;min-height:350px;display:block">
+    <iframe
+      id="tv_chart"
+      src="https://s.tradingview.com/widgetembed/?frameElementId=tv_chart&symbol=FX%3AEURUSD&interval=60&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=0&saveimage=0&toolbarbg=181a20&studies=RSI%40tv-basicstudies%1FMACD%40tv-basicstudies&theme=dark&style=1&timezone=Etc%2FUTC&locale=en&utm_source=veloxtrade.onrender.com&utm_medium=widget_new&utm_campaign=chart&utm_term=FX%3AEURUSD"
+      style="width:100%;height:100%;border:none;min-height:350px;display:block"
+      allowtransparency="true"
+      allowfullscreen
+      scrolling="no">
+    </iframe>
   </div>
   <!-- Bottom panel -->
   <div class="bp">
@@ -1203,97 +1210,23 @@ function renderSignals(){
 // Uses the official TradingView widget script injected into a self-contained div
 // This is how Binance, eToro, and all major platforms embed TradingView
 
-let tvScriptLoaded = false;
-let tvScriptLoading = false;
-let pendingChart = null;
+// TradingView symbol map for iframe
+const TF_MAP = {'1':'1','5':'5','15':'15','60':'60','240':'240','D':'1D','W':'1W'};
 
-function loadTVScript(cb) {
-  if (tvScriptLoaded) { cb(); return; }
-  if (tvScriptLoading) { pendingChart = cb; return; }
-  tvScriptLoading = true;
-  const s = document.createElement('script');
-  s.src = 'https://s3.tradingview.com/tv.js';
-  s.async = true;
-  s.onload = () => {
-    tvScriptLoaded = true;
-    tvScriptLoading = false;
-    cb();
-    if (pendingChart) { pendingChart(); pendingChart = null; }
-  };
-  s.onerror = () => {
-    tvScriptLoading = false;
-    const el = document.getElementById('tv_chart');
-    if (el) el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:300px;color:#848e9c;font-size:13px;flex-direction:column;gap:8px"><span style="font-size:24px">📡</span>Chart requires internet connection</div>';
-  };
-  document.head.appendChild(s);
-}
-
-let tvWidget = null;
 function loadChart(sym, tf) {
-  const container = document.getElementById('tv_chart');
-  if (!container) return;
-
-  // Clear previous
-  if (tvWidget) { try { tvWidget.remove(); } catch(e) {} tvWidget = null; }
-  container.innerHTML = '';
-
-  // Show simple loading text (no spinner circle)
-  container.style.cssText = 'display:flex;align-items:center;justify-content:center;color:#637089;font-size:13px;min-height:400px';
-  container.textContent = 'Loading chart...';
-
-  loadTVScript(() => {
-    // Reset container to block
-    container.style.cssText = '';
-    container.textContent = '';
-
-    // Get pixel height - calculated from actual window dimensions
-    const topH = 48;   // topnav
-    const hdrH = 40;   // chart header
-    const bpH  = 196;  // bottom panel (tabs + table)
-    const h = Math.max(window.innerHeight - topH - hdrH - bpH, 300);
-    // Calculate width reliably - don't use offsetWidth (can be 0 during init)
-    const sidebarW = window.innerWidth > 1024 ? 220 : 0;
-    const rightW   = window.innerWidth > 1024 ? 300 : 0;
-    const w = Math.max(window.innerWidth - sidebarW - rightW, 400);
-
-    container.style.width  = w + 'px';
-    container.style.height = h + 'px';
-
-    try {
-      tvWidget = new TradingView.widget({
-        autosize:          false,
-        width:             w,
-        height:            h,
-        symbol:            TV_MAP[sym] || 'FX:EURUSD',
-        interval:          tf === 'D' ? '1D' : tf === 'W' ? '1W' : tf,
-        timezone:          'Etc/UTC',
-        theme:             'dark',
-        style:             '1',
-        locale:            'en',
-        toolbar_bg:        '#181a20',
-        enable_publishing: false,
-        allow_symbol_change: false,
-        container_id:      'tv_chart',
-        backgroundColor:   '#0b0e11',
-        gridColor:         'rgba(43,47,54,0.4)',
-        studies:           ['RSI@tv-basicstudies', 'MACD@tv-basicstudies'],
-        hide_top_toolbar:  false,
-        save_image:        false,
-        overrides: {
-          'paneProperties.background':                   '#0b0e11',
-          'paneProperties.backgroundType':               'solid',
-          'paneProperties.vertGridProperties.color':     'rgba(43,47,54,0.3)',
-          'paneProperties.horzGridProperties.color':     'rgba(43,47,54,0.3)',
-          'scalesProperties.textColor':                  '#848e9c',
-        }
-      });
-      console.log('✅ TradingView chart loaded:', sym, w+'x'+h);
-    } catch(e) {
-      console.error('TradingView error:', e);
-      container.style.cssText = 'display:flex;align-items:center;justify-content:center;height:300px;color:#848e9c;font-size:13px;flex-direction:column;gap:8px';
-      container.innerHTML = '<span style="font-size:24px">📡</span><span>Chart unavailable. Check internet connection.</span>';
-    }
-  });
+  const iframe = document.getElementById('tv_chart');
+  if (!iframe) return;
+  const tvSym = encodeURIComponent(TV_MAP[sym] || 'FX:EURUSD');
+  const interval = TF_MAP[tf] || '60';
+  iframe.src = 'https://s.tradingview.com/widgetembed/?frameElementId=tv_chart'
+    + '&symbol=' + tvSym
+    + '&interval=' + interval
+    + '&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=0&saveimage=0'
+    + '&toolbarbg=181a20'
+    + '&studies=RSI%40tv-basicstudies%1FMACD%40tv-basicstudies'
+    + '&theme=dark&style=1&timezone=Etc%2FUTC&locale=en'
+    + '&utm_source=veloxtrade.onrender.com&utm_medium=widget_new&utm_campaign=chart'
+    + '&utm_term=' + tvSym;
 }
 
 
@@ -1501,8 +1434,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Connect socket immediately
   setTimeout(initSocket, 200);
 
-  // Load chart after layout fully settles (100ms = safe on all browsers)
-  setTimeout(() => loadChart('EURUSD', '60'), 150);
+  // Load chart after browser paints layout (2 frames = guaranteed)
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      loadChart('EURUSD', '60');
+    });
+  });
 
   // Reload chart on window resize
   let resizeTimer;
