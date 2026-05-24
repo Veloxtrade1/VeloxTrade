@@ -64,14 +64,17 @@ let tdLive = false;
 function connectTD() {
   if (!TD_KEY || TD_KEY.length < 10) { startSim(); return; }
   const ws = new WS(`wss://ws.twelvedata.com/v1/quotes/price?apikey=${TD_KEY}`);
-  const syms = 'EUR/USD,GBP/USD,USD/JPY,XAU/USD,BTC/USD,ETH/USD,SOL/USD,BNB/USD,XRP/USD';
+  const syms = 'EUR/USD,GBP/USD,USD/JPY,USD/CHF,AUD/USD,USD/CAD,BTC/USD,ETH/USD,SOL/USD,BNB/USD,XRP/USD';
   ws.on('open', () => { tdLive=true; ws.send(JSON.stringify({action:'subscribe',params:{symbols:syms}})); });
   ws.on('message', raw => {
     try {
       const m = JSON.parse(raw);
       if (m.event==='price' && m.price > 0) {
-        const map = {'EUR/USD':'EURUSD','GBP/USD':'GBPUSD','USD/JPY':'USDJPY','XAU/USD':'XAUUSD',
-          'BTC/USD':'BTCUSD','ETH/USD':'ETHUSD','SOL/USD':'SOLUSD','BNB/USD':'BNBUSD','XRP/USD':'XRPUSD'};
+        const map = {
+          'EUR/USD':'EURUSD','GBP/USD':'GBPUSD','USD/JPY':'USDJPY','USD/CHF':'USDCHF',
+          'AUD/USD':'AUDUSD','USD/CAD':'USDCAD',
+          'BTC/USD':'BTCUSD','ETH/USD':'ETHUSD','SOL/USD':'SOLUSD','BNB/USD':'BNBUSD','XRP/USD':'XRPUSD'
+        };
         const sym = map[m.symbol];
         if (sym) prices[sym] = parseFloat(m.price);
       }
@@ -82,6 +85,46 @@ function connectTD() {
 }
 
 setInterval(() => io.emit('prices', { p: prices, live: tdLive }), 500);
+// Yahoo Finance server-side polling for metals/energy/indices/stocks
+const https2 = require('https');
+function yhFetch(ticker) {
+  return new Promise((res) => {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1m&range=1d`;
+    const req = https2.get(url, {
+      headers: {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36'}
+    }, r => {
+      let d = '';
+      r.on('data', c => d += c);
+      r.on('end', () => {
+        try { const p = JSON.parse(d)?.chart?.result?.[0]?.meta?.regularMarketPrice; res(p>0?p:null); }
+        catch { res(null); }
+      });
+    });
+    req.on('error', () => res(null));
+    req.setTimeout(7000, () => { req.destroy(); res(null); });
+  });
+}
+const YH_POLL = [
+  ['GC=F','XAUUSD'],['SI=F','XAGUSD'],['CL=F','WTIUSD'],['BZ=F','BRENTUSD'],['NG=F','NGAS'],
+  ['^DJI','US30'],['^GSPC','SPX500'],['^NDX','NAS100'],['^GDAXI','DAX40'],['^FTSE','FTSE100'],
+  ['^N225','NIKKEI'],['^AXJO','ASX200'],
+  ['AAPL','AAPL'],['MSFT','MSFT'],['AMZN','AMZN'],['GOOGL','GOOGL'],['META','META'],
+  ['TSLA','TSLA'],['NVDA','NVDA'],['NFLX','NFLX'],['JPM','JPM'],['BAC','BAC'],
+  ['EURUSD=X','EURUSD'],['GBPUSD=X','GBPUSD'],['USDJPY=X','USDJPY'],['USDCHF=X','USDCHF'],
+  ['AUDUSD=X','AUDUSD'],['USDCAD=X','USDCAD'],['NZDUSD=X','NZDUSD'],
+  ['EURGBP=X','EURGBP'],['EURJPY=X','EURJPY'],['GBPJPY=X','GBPJPY'],
+];
+async function pollYahoo() {
+  for (const [ticker, sym] of YH_POLL) {
+    const p = await yhFetch(ticker);
+    if (p && p > 0) prices[sym] = parseFloat(p.toFixed(sym.includes('JPY')?3:sym==='BTCUSD'||sym.includes('00')?2:5));
+    await new Promise(r => setTimeout(r, 200));
+  }
+  console.log(`[Yahoo] Polled ${YH_POLL.length} prices. XAU=${prices.XAUUSD} BTC=${prices.BTCUSD} EUR=${prices.EURUSD}`);
+}
+setTimeout(pollYahoo, 2000);
+setInterval(pollYahoo, 30000);
+
 
 // ── SL/TP MONITOR ─────────────────────────────────────────────
 async function checkSLTP() {
