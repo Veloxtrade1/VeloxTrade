@@ -109,10 +109,8 @@ a{text-decoration:none;color:inherit}
 .tf.on,.tf:hover{background:var(--bg3);color:var(--t1)}
 
 /* CHART */
-#chartBox{flex:1;min-height:0;position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:350px}
+#chartBox{flex:1;min-height:350px;position:relative}
 #tv_chart{width:100%;height:100%;flex:1;min-height:0}
-.chart-spinner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;background:var(--bg0)}
-.chart-spinner .spin{width:24px;height:24px;border:2px solid var(--bg3);border-top-color:var(--yellow);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .chart-spinner p{font-size:11px;color:var(--t3)}
 
@@ -419,8 +417,8 @@ tr:hover td{background:var(--bg2)}
     </div>
   </div>
   <!-- Chart -->
-  <div id="chartBox" style="flex:1;position:relative;overflow:hidden;min-height:350px;display:flex;flex-direction:column">
-    <div id="tv_chart" style="width:100%;flex:1;min-height:350px"></div>
+  <div id="chartBox" style="flex:1;position:relative;min-height:350px">
+    <div id="tv_chart"></div>
   </div>
   <!-- Bottom panel -->
   <div class="bp">
@@ -1235,68 +1233,66 @@ function loadChart(sym, tf) {
   const container = document.getElementById('tv_chart');
   if (!container) return;
 
-  // Clear previous widget
-  if (tvWidget) {
-    try { tvWidget.remove(); } catch(e) {}
-    tvWidget = null;
-  }
+  // Clear previous
+  if (tvWidget) { try { tvWidget.remove(); } catch(e) {} tvWidget = null; }
   container.innerHTML = '';
 
-  // Show loading state
-  container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:300px;color:#637089;font-size:12px;gap:8px"><div style="width:20px;height:20px;border:2px solid #2b2f36;border-top-color:#f0b90b;border-radius:50%;animation:spin .7s linear infinite"></div>Loading chart...</div>';
+  // Show simple loading text (no spinner circle)
+  container.style.cssText = 'display:flex;align-items:center;justify-content:center;color:#637089;font-size:13px;min-height:400px';
+  container.textContent = 'Loading chart...';
 
   loadTVScript(() => {
-    container.innerHTML = '';
+    // Reset container to block
+    container.style.cssText = '';
+    container.textContent = '';
 
-    // Calculate real pixel height for TradingView widget
-    const box = document.getElementById('chartBox');
-    const bp = document.querySelector('.bp');
-    const hdr = document.querySelector('.chart-header');
-    const banner = document.getElementById('demoBanner');
-    
-    // Available height = full window - topnav(48) - chart-header - demo-banner - bottom-panel
-    const topnavH = 48;
-    const hdrH = hdr ? hdr.getBoundingClientRect().height : 40;
-    const bannerH = (banner && !banner.classList.contains('hidden')) ? banner.getBoundingClientRect().height : 0;
-    const bpH = bp ? bp.getBoundingClientRect().height : 200;
-    const chartH = Math.max(window.innerHeight - topnavH - hdrH - bannerH - bpH, 300);
-    
-    container.style.height = chartH + 'px';
-    container.style.minHeight = chartH + 'px';
+    // Get pixel height - calculated from actual window dimensions
+    const topH = 48;   // topnav
+    const hdrH = 40;   // chart header
+    const bpH  = 196;  // bottom panel (tabs + table)
+    const h = Math.max(window.innerHeight - topH - hdrH - bpH, 300);
+    const w = container.parentElement ? container.parentElement.offsetWidth : (window.innerWidth - 220 - 300);
+
+    container.style.width  = w + 'px';
+    container.style.height = h + 'px';
 
     try {
       tvWidget = new TradingView.widget({
-        width: '100%',
-        height: chartH,
-        symbol: TV_MAP[sym] || 'FX:EURUSD',
-        interval: tf === 'D' ? '1D' : tf === 'W' ? '1W' : tf,
-        timezone: 'Etc/UTC',
-        theme: 'dark',
-        style: '1',
-        locale: 'en',
-        toolbar_bg: '#181a20',
+        autosize:          false,
+        width:             w,
+        height:            h,
+        symbol:            TV_MAP[sym] || 'FX:EURUSD',
+        interval:          tf === 'D' ? '1D' : tf === 'W' ? '1W' : tf,
+        timezone:          'Etc/UTC',
+        theme:             'dark',
+        style:             '1',
+        locale:            'en',
+        toolbar_bg:        '#181a20',
         enable_publishing: false,
         allow_symbol_change: false,
-        container_id: 'tv_chart',
-        backgroundColor: '#0b0e11',
-        gridColor: 'rgba(43,47,54,0.4)',
-        studies: ['RSI@tv-basicstudies', 'MACD@tv-basicstudies'],
-        hide_top_toolbar: false,
-        save_image: false,
+        container_id:      'tv_chart',
+        backgroundColor:   '#0b0e11',
+        gridColor:         'rgba(43,47,54,0.4)',
+        studies:           ['RSI@tv-basicstudies', 'MACD@tv-basicstudies'],
+        hide_top_toolbar:  false,
+        save_image:        false,
         overrides: {
-          'paneProperties.background': '#0b0e11',
-          'paneProperties.backgroundType': 'solid',
-          'paneProperties.vertGridProperties.color': 'rgba(43,47,54,0.4)',
-          'paneProperties.horzGridProperties.color': 'rgba(43,47,54,0.4)',
-          'scalesProperties.textColor': '#848e9c',
+          'paneProperties.background':                   '#0b0e11',
+          'paneProperties.backgroundType':               'solid',
+          'paneProperties.vertGridProperties.color':     'rgba(43,47,54,0.3)',
+          'paneProperties.horzGridProperties.color':     'rgba(43,47,54,0.3)',
+          'scalesProperties.textColor':                  '#848e9c',
         }
       });
+      console.log('✅ TradingView chart loaded:', sym, w+'x'+h);
     } catch(e) {
-      console.error('TV error:', e);
-      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:300px;color:#848e9c">Chart unavailable</div>';
+      console.error('TradingView error:', e);
+      container.style.cssText = 'display:flex;align-items:center;justify-content:center;height:300px;color:#848e9c;font-size:13px;flex-direction:column;gap:8px';
+      container.innerHTML = '<span style="font-size:24px">📡</span><span>Chart unavailable. Check internet connection.</span>';
     }
   });
 }
+
 
 // Watch for chartBox resize and reload chart if height changes significantly
 let lastChartH = 0;
@@ -1502,15 +1498,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Connect socket immediately
   setTimeout(initSocket, 200);
 
-  // Attach resize observer to chartBox
-  const chartBox = document.getElementById('chartBox');
-  if (chartResizeObs && chartBox) chartResizeObs.observe(chartBox);
-
-  // Load chart after layout is painted
+  // Load chart after browser paints layout (2 frames = guaranteed)
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       loadChart('EURUSD', '60');
     });
+  });
+
+  // Reload chart on window resize
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => loadChart(currentSym, currentTF), 400);
   });
 
   // Fetch real prices
