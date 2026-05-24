@@ -207,7 +207,7 @@ body{font-family:var(--font);background:var(--bg0);color:var(--t1);min-height:10
 <div class="toasts" id="toastWrap"></div>
 <script src="/socket.io/socket.io.js" onerror="console.log('no socket')"></script>
 <script>
-const token = localStorage.getItem('token');
+const token = localStorage.getItem('velox_token');
 if (!token) location.href = '../';
 let user = {};
 try { user = JSON.parse(localStorage.getItem('user') || '{}'); } catch {}
