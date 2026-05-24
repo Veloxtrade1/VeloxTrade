@@ -91,7 +91,7 @@ a{text-decoration:none;color:inherit}
 .si-c{font-size:9px;font-family:var(--mono)}
 
 /* ── CENTER ── */
-.center{display:flex;flex-direction:column;min-height:0;overflow:hidden;background:var(--bg0)}
+.center{display:flex;flex-direction:column;overflow:hidden;background:var(--bg0);min-height:0;height:100%}
 
 /* CHART HEADER */
 .chart-header{background:var(--bg1);border-bottom:1px solid var(--border);padding:0 14px;height:40px;display:flex;align-items:center;gap:16px;flex-shrink:0}
@@ -419,11 +419,14 @@ tr:hover td{background:var(--bg2)}
     </div>
   </div>
   <!-- Chart -->
-  <div id="chartBox" style="flex:1;position:relative;overflow:hidden;min-height:300px">
-    <div class="chart-spinner" id="chartSpinner">
-      <div class="spin"></div><p>Loading chart...</p>
-    </div>
-    <div id="tv_chart"></div>
+  <div id="chartBox" style="flex:1;position:relative;overflow:hidden;min-height:350px">
+    <iframe id="tv_iframe"
+      src="https://s.tradingview.com/widgetembed/?frameElementId=tv_iframe&symbol=FX%3AEURUSD&interval=60&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=0&saveimage=0&toolbarbg=181a20&studies=RSI%40tv-basicstudies%1FMACD%40tv-basicstudies&theme=dark&style=1&timezone=Etc%2FUTC&studies_overrides=%7B%7D&overrides=%7B%7D&enabled_features=%5B%5D&disabled_features=%5B%5D&locale=en&utm_source=veloxtrade.onrender.com"
+      style="width:100%;height:100%;border:none;display:block;min-height:350px"
+      allowtransparency="true"
+      frameborder="0"
+      id="tv_chart">
+    </iframe>
   </div>
   <!-- Bottom panel -->
   <div class="bp">
@@ -1204,93 +1207,38 @@ function renderSignals(){
 }
 
 // ── CHART ─────────────────────────────────────────────
-let tvWidget = null;
+// TradingView chart via iframe embed - 100% reliable, no height issues
+const TV_INTERVALS = {
+  '1':'1','5':'5','15':'15','60':'60','240':'240','D':'1D','W':'1W'
+};
+
 function loadChart(sym, tf) {
-  const spinner = document.getElementById('chartSpinner');
-  const container = document.getElementById('tv_chart');
-  
-  // Show spinner, clear old chart
-  if (spinner) spinner.style.display = 'flex';
-  if (container) container.innerHTML = '';
-  if (tvWidget) { try { tvWidget.remove(); } catch {} tvWidget = null; }
+  const iframe = document.getElementById('tv_iframe');
+  if (!iframe) return;
 
-  const createWidget = () => {
-    if (spinner) spinner.style.display = 'none';
-    
-    // Ensure container has real pixel dimensions
-    const chartBox = document.getElementById('chartBox');
-    const h = chartBox ? chartBox.getBoundingClientRect().height : 0;
-    if (container) {
-      container.style.width = '100%';
-      container.style.height = h > 50 ? h + 'px' : '400px';
-    }
+  const tvSym = encodeURIComponent(TV_MAP[sym] || 'FX:EURUSD');
+  const interval = TV_INTERVALS[tf] || '60';
 
-    // Safety: hide spinner after 5s regardless of widget status
-    setTimeout(() => {
-      const sp = document.getElementById('chartSpinner');
-      if (sp) sp.style.display = 'none';
-    }, 5000);
+  const src = `https://s.tradingview.com/widgetembed/?` +
+    `frameElementId=tv_iframe` +
+    `&symbol=${tvSym}` +
+    `&interval=${interval}` +
+    `&hidesidetoolbar=0` +
+    `&hidetoptoolbar=0` +
+    `&symboledit=0` +
+    `&saveimage=0` +
+    `&toolbarbg=181a20` +
+    `&studies=RSI%40tv-basicstudies%1FMACD%40tv-basicstudies` +
+    `&theme=dark` +
+    `&style=1` +
+    `&timezone=Etc%2FUTC` +
+    `&locale=en` +
+    `&utm_source=veloxtrade.onrender.com`;
 
-    try {
-      tvWidget = new TradingView.widget({
-        autosize: true,
-        symbol: TV_MAP[sym] || 'FX:EURUSD',
-        interval: tf === 'D' ? '1D' : tf === 'W' ? '1W' : tf,
-        timezone: 'Etc/UTC',
-        theme: 'dark',
-        style: '1',
-        locale: 'en',
-        toolbar_bg: '#181a20',
-        enable_publishing: false,
-        allow_symbol_change: false,
-        container_id: 'tv_chart',
-        backgroundColor: '#0b0e11',
-        gridColor: 'rgba(43,47,54,0.3)',
-        studies: ['RSI@tv-basicstudies', 'MACD@tv-basicstudies'],
-        hide_top_toolbar: false,
-        hide_legend: false,
-        save_image: false,
-        withdateranges: true,
-        overrides: {
-          'paneProperties.background': '#0b0e11',
-          'paneProperties.backgroundType': 'solid',
-          'paneProperties.vertGridProperties.color': 'rgba(43,47,54,0.4)',
-          'paneProperties.horzGridProperties.color': 'rgba(43,47,54,0.4)',
-          'scalesProperties.textColor': '#848e9c',
-          'scalesProperties.backgroundColor': '#0b0e11',
-        }
-      });
-    } catch(e) {
-      console.error('TradingView widget error:', e);
-      if (container) container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#848e9c;font-size:14px">Chart unavailable</div>';
-    }
-  };
-
-  if (typeof TradingView !== 'undefined') {
-    createWidget();
-  } else {
-    // Load TradingView script
-    const existing = document.querySelector('script[src*="tradingview.com"]');
-    if (existing) {
-      // Script already loading - wait for it
-      let attempts = 0;
-      const wait = setInterval(() => {
-        attempts++;
-        if (typeof TradingView !== 'undefined') { clearInterval(wait); createWidget(); }
-        else if (attempts > 30) { clearInterval(wait); if(spinner) spinner.innerHTML='<p style="color:#848e9c;font-size:12px">Chart loading failed. Reload the page.</p>'; }
-      }, 200);
-      return;
-    }
-    const script = document.createElement('script');
-    script.src = 'https://s3.tradingview.com/tv.js';
-    script.async = true;
-    script.onload = createWidget;
-    script.onerror = () => {
-      if (spinner) spinner.innerHTML = '<p style="color:#848e9c;font-size:12px;text-align:center">Chart requires internet connection.<br>Please check your network.</p>';
-    };
-    document.head.appendChild(script);
-  }
+  iframe.src = src;
 }
+
+
 function setTF(tf,el){document.querySelectorAll('.tf').forEach(b=>b.classList.remove('on'));if(el)el.classList.add('on');currentTF=tf;loadChart(currentSym,tf);}
 
 // ── USER DATA ─────────────────────────────────────────
@@ -1481,15 +1429,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Connect socket immediately
   setTimeout(initSocket, 200);
 
-  // Load chart AFTER a brief delay to ensure layout is fully rendered
-  // requestAnimationFrame ensures DOM is painted before TradingView measures heights
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      loadChart('EURUSD', '60');
-    }, 100);
-  });
+  // Load chart - iframe approach is immediate, no timing needed
+  loadChart('EURUSD', '60');
 
-  // Start fetching real prices immediately
+  // Start fetching real prices
   fetchBrowserPrices();
 });
 </script>
