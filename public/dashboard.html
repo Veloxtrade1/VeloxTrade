@@ -48,6 +48,12 @@ a{text-decoration:none;color:inherit}
 .g{color:var(--green)}.r{color:var(--red)}
 .tn-right{margin-left:auto;display:flex;align-items:center;gap:6px;flex-shrink:0}
 .live-tag{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.04em;cursor:default}
+.acct-switcher{display:flex;flex-direction:row;align-items:stretch;background:var(--bg0);border:1px solid var(--border);border-radius:6px;overflow:hidden;flex-shrink:0;height:28px}
+.acct-sw-btn{padding:0 12px;font-size:11px;font-weight:700;cursor:pointer;border:none;background:none;color:var(--t3);transition:.15s;letter-spacing:.04em;white-space:nowrap;display:flex;align-items:center;height:100%}
+.acct-sw-btn.demo.on{background:rgba(240,185,11,.15);color:var(--yellow)}
+.acct-sw-btn.live.on{background:var(--greenbg);color:var(--green)}
+.acct-sw-btn:hover:not(.on){background:var(--bg2);color:var(--t1)}
+.acct-divider{width:1px;background:var(--border);flex-shrink:0;height:100%}
 .lt-live{background:var(--greenbg);border:1px solid var(--greenbdr);color:var(--green)}
 .lt-sim{background:var(--yellowbg);border:1px solid rgba(240,185,11,.3);color:var(--yellow)}
 .lt-dot{width:5px;height:5px;border-radius:50%;background:currentColor;animation:blink 1.2s ease infinite}
@@ -751,15 +757,8 @@ const mom = {}; SYMS.forEach(s=>mom[s.s]=0);
 const MVOL = {BTCUSD:.00006,ETHUSD:.00006,SOLUSD:.00008,XAUUSD:.00003,WTIUSD:.00004,US30:.00002,EURUSD:.000006,GBPUSD:.000006};
 setInterval(()=>{
   prevPrices = {...prices};
-  for (const s in prices) {
-    const v = MVOL[s]||.000005;
-    mom[s] = (mom[s]||0)*.75+(Math.random()-.5)*v;
-    const next = prices[s]*(1+mom[s]);
-    const anchor = anchorPrices[s]||prices[s];
-    prices[s] = Math.max(anchor*.99997, Math.min(anchor*1.00003, next));
-  }
-  renderUI();
-}, 800);
+  // (replaced by new micro-tick below)
+}, 999999);
 
 // ── SOCKET.IO (real prices from Twelve Data via server) ───
 function initSocket() {
@@ -770,11 +769,16 @@ function initSocket() {
 
   socket.on('prices', d => {
     if (!d||!d.p) return;
-    prevPrices = {...prices};
-    Object.assign(prices, d.p);
-    Object.assign(anchorPrices, d.p);
-    if (d.live !== undefined) setLive(d.live);
-    renderUI();
+    setLive(d.live || false);
+    if (d.live) {
+      // Server has REAL Twelve Data prices — use them
+      prevPrices = {...prices};
+      Object.assign(prices, d.p);
+      Object.assign(anchorPrices, d.p);
+      renderUI();
+    }
+    // If d.live === false: server is simulating, ignore server prices
+    // Browser fetchBrowserPrices() handles real prices independently
   });
 
   // SL/TP auto-close notification
@@ -809,39 +813,112 @@ function setLive(live) {
 }
 
 // ── BROWSER FALLBACK (Yahoo Finance for forex/stocks) ───
-async function fetchBrowserPrices() {
-  // Fetch key forex pairs via Yahoo Finance (browser CORS works)
-  const pairs = [['EURUSD=X','EURUSD'],['GBPUSD=X','GBPUSD'],['USDJPY=X','USDJPY'],['USDCHF=X','USDCHF'],['AUDUSD=X','AUDUSD'],['EURGBP=X','EURGBP'],['EURJPY=X','EURJPY'],['GBPJPY=X','GBPJPY']];
-  await Promise.allSettled(pairs.map(async([yt,sym])=>{
-    try{
-      const d=await(await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yt)}?interval=1m&range=1d`,{signal:AbortSignal.timeout(7000)})).json();
-      const meta=d?.chart?.result?.[0]?.meta;
-      if(meta?.regularMarketPrice){
-        const p=meta.regularMarketPrice;
-        prices[sym]=p; anchorPrices[sym]=p;
-        if(meta.previousClose) dayChange[sym]=(p-meta.previousClose)/meta.previousClose*100;
-      }
-    }catch{}
-  }));
-  // Crypto via CoinGecko
-  try{
-    const d=await(await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,solana,ripple,cardano,litecoin,dogecoin,avalanche-2,chainlink,polkadot,uniswap,aave&vs_currencies=usd&include_24hr_change=true',{signal:AbortSignal.timeout(8000)})).json();
-    const map={bitcoin:'BTCUSD',ethereum:'ETHUSD',binancecoin:'BNBUSD',solana:'SOLUSD',ripple:'XRPUSD',cardano:'ADAUSD',litecoin:'LTCUSD',dogecoin:'DOGEUSD','avalanche-2':'AVAXUSD',chainlink:'LINKUSD',polkadot:'DOTUSD',uniswap:'UNIUSD',aave:'AAVEUSD'};
-    for(const[id,sym] of Object.entries(map)){
-      if(d[id]?.usd){prices[sym]=d[id].usd;anchorPrices[sym]=d[id].usd;if(d[id].usd_24h_change!=null)dayChange[sym]=d[id].usd_24h_change;}
-    }
-  }catch{}
-  // Gold via Yahoo
-  try{
-    const d=await(await fetch('https://query1.finance.yahoo.com/v8/finance/chart/GC%3DF?interval=1m&range=1d',{signal:AbortSignal.timeout(7000)})).json();
-    const meta=d?.chart?.result?.[0]?.meta;
-    if(meta?.regularMarketPrice){prices.XAUUSD=meta.regularMarketPrice;anchorPrices.XAUUSD=meta.regularMarketPrice;if(meta.previousClose)dayChange.XAUUSD=(meta.regularMarketPrice-meta.previousClose)/meta.previousClose*100;}
-  }catch{}
-  setLive(true);
+// ══════════════════════════════════════════════════════════════
+//  REAL PRICE ENGINE — Yahoo Finance + CoinGecko
+//  Fetches EVERY symbol every 10 seconds
+//  These are the SAME prices shown in the TradingView chart
+// ══════════════════════════════════════════════════════════════
+
+// Yahoo Finance ticker map → our internal symbol
+const YF_MAP = [
+  // Forex
+  ['EURUSD=X','EURUSD'],['GBPUSD=X','GBPUSD'],['USDJPY=X','USDJPY'],
+  ['USDCHF=X','USDCHF'],['AUDUSD=X','AUDUSD'],['USDCAD=X','USDCAD'],
+  ['NZDUSD=X','NZDUSD'],['EURGBP=X','EURGBP'],['EURJPY=X','EURJPY'],
+  ['GBPJPY=X','GBPJPY'],
+  // Metals & Energy
+  ['GC=F','XAUUSD'],['SI=F','XAGUSD'],
+  ['CL=F','WTIUSD'],['BZ=F','BRENTUSD'],['NG=F','NGAS'],
+  // Indices
+  ['^DJI','US30'],['^GSPC','SPX500'],['^NDX','NAS100'],
+  ['^GDAXI','DAX40'],['^FTSE','FTSE100'],['^N225','NIKKEI'],
+  ['^AXJO','ASX200'],['^FCHI','CAC40'],['^STOXX50E','STOXX50'],
+  // US Stocks
+  ['AAPL','AAPL'],['MSFT','MSFT'],['AMZN','AMZN'],['GOOGL','GOOGL'],
+  ['META','META'],['TSLA','TSLA'],['NVDA','NVDA'],['NFLX','NFLX'],
+  ['BABA','BABA'],['JPM','JPM'],['BAC','BAC'],['WMT','WMT'],
+  ['JNJ','JNJ'],['V','V'],['PG','PG'],['XOM','XOM'],
+  ['CVX','CVX'],['PFE','PFE'],['KO','KO'],['DIS','DIS'],
+];
+
+// CoinGecko crypto map
+const CG_MAP = {
+  bitcoin:'BTCUSD', ethereum:'ETHUSD', binancecoin:'BNBUSD',
+  solana:'SOLUSD', ripple:'XRPUSD', cardano:'ADAUSD',
+  litecoin:'LTCUSD', dogecoin:'DOGEUSD', 'avalanche-2':'AVAXUSD',
+  'matic-network':'MATICUSD', chainlink:'LINKUSD', polkadot:'DOTUSD',
+  uniswap:'UNIUSD', aave:'AAVEUSD',
+};
+
+let realPricesFetched = false;
+let lastFetchTime = 0;
+
+async function fetchYahoo(pairs) {
+  const results = await Promise.allSettled(
+    pairs.map(async ([yt, sym]) => {
+      try {
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yt)}?interval=1m&range=1d`;
+        const r = await fetch(url, { signal: AbortSignal.timeout(6000) });
+        const d = await r.json();
+        const meta = d?.chart?.result?.[0]?.meta;
+        if (meta?.regularMarketPrice && meta.regularMarketPrice > 0) {
+          const p = meta.regularMarketPrice;
+          prices[sym] = p;
+          anchorPrices[sym] = p;
+          if (meta.previousClose && meta.previousClose > 0) {
+            dayChange[sym] = (p - meta.previousClose) / meta.previousClose * 100;
+          }
+          return true;
+        }
+      } catch {}
+      return false;
+    })
+  );
+  return results.filter(r => r.status === 'fulfilled' && r.value).length;
 }
-// Fetch browser prices every 15 seconds as supplemental/fallback
+
+async function fetchCryptoReal() {
+  try {
+    const ids = Object.keys(CG_MAP).join(',');
+    const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`;
+    const d = await (await fetch(url, { signal: AbortSignal.timeout(8000) })).json();
+    let count = 0;
+    for (const [id, sym] of Object.entries(CG_MAP)) {
+      if (d[id]?.usd && d[id].usd > 0) {
+        prices[sym] = d[id].usd;
+        anchorPrices[sym] = d[id].usd;
+        if (d[id].usd_24h_change != null) dayChange[sym] = d[id].usd_24h_change;
+        count++;
+      }
+    }
+    return count;
+  } catch { return 0; }
+}
+
+async function fetchBrowserPrices() {
+  const now = Date.now();
+  // Throttle: don't fetch more than once per 8 seconds
+  if (now - lastFetchTime < 8000) return;
+  lastFetchTime = now;
+
+  // Run forex+metals+indices+stocks and crypto in parallel
+  const [yahooCount, cryptoCount] = await Promise.allSettled([
+    fetchYahoo(YF_MAP),
+    fetchCryptoReal(),
+  ]);
+
+  const total = (yahooCount.value || 0) + (cryptoCount.value || 0);
+
+  if (total > 0) {
+    realPricesFetched = true;
+    setLive(true);
+    renderUI();
+  }
+}
+
+// Fetch immediately on load, then every 10 seconds
 fetchBrowserPrices();
-setInterval(fetchBrowserPrices, 15000);
+setInterval(fetchBrowserPrices, 10000);
 
 // ── UI RENDER ─────────────────────────────────────────
 function renderUI() {
