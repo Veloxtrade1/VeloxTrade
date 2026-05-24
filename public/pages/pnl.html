@@ -235,7 +235,7 @@ tr:last-child td{border:none}
 </div>
 
 <script>
-const token = localStorage.getItem('token');
+const token = localStorage.getItem('velox_token');
 if (!token) location.href = '../';
 let user = {};
 try { user = JSON.parse(localStorage.getItem('user') || '{}'); } catch {}
