@@ -411,7 +411,7 @@ footer{background:var(--bg2);border-top:1px solid var(--b1);padding:64px 0 32px}
       <div class="nav-dropdown">
         <button class="nav-link">Platforms <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></button>
         <div class="dropdown-menu">
-          <a href="dashboard.html" class="dd-item"><div class="dd-item-icon" style="background:rgba(75,139,245,.15)">🖥️</div><div><div class="dd-item-text">Web Trader</div><div class="dd-item-sub">Trade in your browser</div></div></a>
+          <a href="#" onclick="goDash(event)" class="dd-item"><div class="dd-item-icon" style="background:rgba(75,139,245,.15)">🖥️</div><div><div class="dd-item-text">Web Trader</div><div class="dd-item-sub">Trade in your browser</div></div></a>
           <a href="pages/mobile.html" class="dd-item"><div class="dd-item-icon" style="background:rgba(0,229,176,.15)">📱</div><div><div class="dd-item-text">Mobile App</div><div class="dd-item-sub">iOS & Android</div></div></a>
         </div>
       </div>
@@ -442,7 +442,7 @@ footer{background:var(--bg2);border-top:1px solid var(--b1);padding:64px 0 32px}
   <button class="mobile-close" onclick="toggleMobileMenu()">✕</button>
   <div class="mobile-menu-inner">
     <a href="pages/markets.html" class="mm-link">Markets <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6-6-6z"/></svg></a>
-    <a href="dashboard.html" class="mm-link">Platform <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6-6-6z"/></svg></a>
+    <a href="#" onclick="goDash(event)" class="mm-link">Platform <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6-6-6z"/></svg></a>
     <a href="#accounts" class="mm-link" onclick="toggleMobileMenu()">Accounts <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6-6-6z"/></svg></a>
     <a href="pages/learn.html" class="mm-link">Education <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6-6-6z"/></svg></a>
     <a href="pages/partners.html" class="mm-link">Partners <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6-6-6z"/></svg></a>
@@ -479,7 +479,7 @@ footer{background:var(--bg2);border-top:1px solid var(--b1);padding:64px 0 32px}
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
             Open Free Account
           </button>
-          <a href="dashboard.html" class="btn btn-ghost btn-lg">
+          <a href="#" onclick="goDash(event)" class="btn btn-ghost btn-lg">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             Try Demo Trading
           </a>
@@ -579,7 +579,7 @@ footer{background:var(--bg2);border-top:1px solid var(--b1);padding:64px 0 32px}
         </div>
         <h3 class="feat-title">AI Trading Signals</h3>
         <p class="feat-desc">Get real-time AI-powered signals with entry/exit levels, stop loss, take profit and strength ratings. Trade smarter with data.</p>
-        <a href="dashboard.html" class="feat-link">See signals <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6-6-6z"/></svg></a>
+        <a href="#" onclick="goDash(event)" class="feat-link">See signals <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6-6-6z"/></svg></a>
       </div>
       <div class="feat-card">
         <div class="feat-icon" style="background:rgba(139,92,246,.15)">
@@ -1231,8 +1231,8 @@ async function handleSignup(){
     const r=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password,fullName:`${fname} ${lname}`,country})});
     const d=await r.json();
     if(d.token){
-      localStorage.setItem('token',d.token);
-      localStorage.setItem('user',JSON.stringify(d.user));
+      localStorage.setItem('velox_token',d.token);
+      localStorage.setItem('velox_user',JSON.stringify(d.user));
       showSuccess('Account created! Redirecting to your dashboard...');
       setTimeout(()=>{location.href='dashboard.html';},1200);
     }else{showError(d.msg||'Registration failed. Please try again.');}
@@ -1251,8 +1251,8 @@ async function handleLogin(){
     const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
     const d=await r.json();
     if(d.token){
-      localStorage.setItem('token',d.token);
-      localStorage.setItem('user',JSON.stringify(d.user));
+      localStorage.setItem('velox_token',d.token);
+      localStorage.setItem('velox_user',JSON.stringify(d.user));
       showSuccess('Login successful! Redirecting...');
       setTimeout(()=>{location.href='dashboard.html';},1000);
     }else{showError(d.msg||'Invalid email or password.');}
@@ -1285,11 +1285,21 @@ setTimeout(()=>{
 },1000);
 
 // Check if already logged in
-if(localStorage.getItem('token')){
+if(localStorage.getItem('velox_token')){
   const nav=document.querySelector('.nav-right');
-  if(nav)nav.innerHTML='<a href="dashboard.html" class="btn btn-green">Go to Dashboard →</a>';
+  if(nav)nav.innerHTML='<a href="#" onclick="goDash(event)" class="btn btn-green">Go to Dashboard →</a>';
 }
 </script>
-<script src="/socket.io/socket.io.js" onerror="console.log('socket.io not available')"></script>
+<script src="/socket.io/socket.io.js" onerror="console.log('socket.io not available')">
+// Smart dashboard redirect - show login if not authenticated
+function goDash(e) {
+  if (e) e.preventDefault();
+  if (localStorage.getItem('velox_token')) {
+    location.href = 'dashboard.html';
+  } else {
+    openModal('login');
+  }
+}
+</script>
 </body>
 </html>
