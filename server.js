@@ -472,7 +472,9 @@ app.get('/api/prices/yahoo', async (req, res) => {
     try {
       const d = await httpsGet(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yt)}?interval=1m&range=1d`);
       const meta = d?.chart?.result?.[0]?.meta;
-      if (meta?.regularMarketPrice > 0) results[yt] = meta.regularMarketPrice;
+      if (meta?.regularMarketPrice > 0) {
+          results[yt] = { price: meta.regularMarketPrice, open: meta.regularMarketOpen || meta.chartPreviousClose || 0 };
+        }
     } catch {}
   }));
   res.json(results);
