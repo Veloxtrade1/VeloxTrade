@@ -241,9 +241,12 @@ tr:hover td{background:var(--bg2)}
 .mn-btn svg{width:19px;height:19px;fill:currentColor}
 .mob-panel{position:fixed;top:48px;left:0;right:0;bottom:56px;background:var(--bg1);z-index:150;overflow-y:auto;display:none;-webkit-overflow-scrolling:touch}
 .ind-bar{
-  display:flex;align-items:center;gap:4px;padding:4px 8px;
-  border-top:1px solid var(--border);background:var(--bg0);flex-shrink:0;flex-wrap:wrap;
+  display:flex;align-items:center;gap:4px;padding:3px 8px;
+  border-top:1px solid var(--border);background:var(--bg0);flex-shrink:0;
+  overflow-x:auto;overflow-y:hidden;white-space:nowrap;min-height:28px;
 }
+.ind-bar::-webkit-scrollbar{height:2px}
+.ind-bar::-webkit-scrollbar-thumb{background:var(--bg3)}
 .ind-btn{
   padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;cursor:pointer;
   border:1px solid var(--border);background:none;color:var(--t4);transition:.12s;font-family:var(--font);
@@ -987,7 +990,7 @@ function initSocket() {
     // Receive dailyOpen for % change
     if (d.dailyOpen) {
       for (const [sym, open] of Object.entries(d.dailyOpen)) {
-        if (!dailyOpen[sym] && open > 0) dailyOpen[sym] = open;
+        if (open > 0) dailyOpen[sym] = open; // always update from server
       }
     }
     renderUI();
@@ -1039,8 +1042,8 @@ function renderTickers() {
   if (!el) return;
   el.innerHTML = TICK.map(s => {
     const p = prices[s] || SEEDS[s] || 0;
-    const base = dailyOpen[s] || SEEDS[s] || p;
-    const chg = (base && p && base !== p) ? (p-base)/base*100 : 0;
+    const base = dailyOpen[s] || 0;
+    const chg = (base > 0 && p > 0) ? (p-base)/base*100 : 0;
     const cls = chg>=0?'g':'r';
     return `<div class="ticker" onclick="selectSym('${s}')" title="${s}">
       <span class="tk-sym">${s.replace('USD','')}</span>
@@ -1057,8 +1060,8 @@ function renderSymList() {
   );
   const html = list.map(({s,n,ic,col}) => {
     const p = prices[s] || SEEDS[s] || 0;
-    const base = dailyOpen[s] || SEEDS[s] || p;
-    const chg = (base && p && base !== p) ? (p-base)/base*100 : 0;
+    const base = dailyOpen[s] || 0;
+    const chg = (base > 0 && p > 0) ? (p-base)/base*100 : 0;
     const cls = chg>=0?'g':'r';
     return `<div class="si${s===currentSym?' act':''}" onclick="selectSym('${s}')">
       <div class="si-left">
@@ -1098,8 +1101,8 @@ function mobSelectSym(s) { selectSym(s); mobShow('chart'); }
 function updateChartHeader() {
   const s = SYMS.find(x=>x.s===currentSym)||{n:currentSym,cat:''};
   const p = prices[currentSym] || SEEDS[currentSym] || 0;
-  const base = dailyOpen[currentSym] || prevPrices[currentSym] || p;
-  const chg = base ? (p-base)/base*100 : 0;
+  const base = dailyOpen[currentSym] || 0;
+  const chg = (base > 0 && p > 0) ? (p-base)/base*100 : 0;
   const sp = getSpread(currentSym);
   const cls = chg>=0?'g':'r';
   const set = (id,v,c)=>{ const el=document.getElementById(id); if(el){el.textContent=v;if(c)el.className=c;}};
