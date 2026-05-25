@@ -169,23 +169,59 @@ function connectTD() {
 // ── YAHOO FINANCE POLL (metals, energy, indices, stocks) ──────
 const https2 = require('https');
 function yhFetch(ticker) {
-  return new Promise(res => {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1m&range=1d`;
+  // Try multiple Yahoo Finance endpoints for resilience
+  const endpoints = [
+    `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1m&range=1d`,
+    `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1m&range=1d`,
+    `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(ticker)}`,
+  ];
+  const UA_LIST = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Safari/605.1.15',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  ];
+
+  const tryFetch = (url, ua) => new Promise(res => {
     const req = https2.get(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36' }
+      headers: {
+        'User-Agent': ua,
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Referer': 'https://finance.yahoo.com/',
+        'Origin': 'https://finance.yahoo.com',
+      }
     }, r => {
       let d = '';
       r.on('data', c => d += c);
       r.on('end', () => {
         try {
           const j = JSON.parse(d);
+          // v8 chart response
           const meta = j?.chart?.result?.[0]?.meta;
-          res(meta?.regularMarketPrice > 0 ? { price: meta.regularMarketPrice, open: meta.regularMarketOpen || meta.chartPreviousClose || 0 } : null);
+          if (meta?.regularMarketPrice > 0) {
+            return res({ price: meta.regularMarketPrice, open: meta.regularMarketOpen || meta.chartPreviousClose || 0 });
+          }
+          // v7 quote response
+          const quote = j?.quoteResponse?.result?.[0];
+          if (quote?.regularMarketPrice > 0) {
+            return res({ price: quote.regularMarketPrice, open: quote.regularMarketOpen || quote.regularMarketPreviousClose || 0 });
+          }
+          res(null);
         } catch { res(null); }
       });
     });
     req.on('error', () => res(null));
-    req.setTimeout(8000, () => { req.destroy(); res(null); });
+    req.setTimeout(6000, () => { req.destroy(); res(null); });
+  });
+
+  return new Promise(async res => {
+    // Try endpoints with different user agents
+    for (let i = 0; i < endpoints.length; i++) {
+      const ua = UA_LIST[i % UA_LIST.length];
+      const result = await tryFetch(endpoints[i], ua);
+      if (result) return res(result);
+    }
+    res(null);
   });
 }
 
