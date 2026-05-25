@@ -969,7 +969,7 @@ async function fetchRealPrices() {
   renderUI();
 }
 fetchRealPrices();
-setInterval(fetchRealPrices, 15000);
+setInterval(fetchRealPrices, 60000); // backup only - server handles real-time
 
 // ── SOCKET.IO ─────────────────────────────────────────────────
 let socket;
@@ -979,17 +979,18 @@ function initSocket() {
   socket.on('prices', d => {
     if (!d?.p) return;
     setLive(d.live||false);
-    if (d.live) {
-      // Twelve Data reliable for forex & crypto only
-      // Yahoo Finance preferred for metals/energy/indices/stocks
-      const TD_SYMS = ['EURUSD','GBPUSD','USDJPY','USDCHF','AUDUSD','USDCAD','NZDUSD',
-        'EURGBP','EURJPY','GBPJPY','BTCUSD','ETHUSD','BNBUSD','SOLUSD','XRPUSD'];
-      prevPrices = {...prices};
-      for (const sym of TD_SYMS) {
-        if (d.p[sym] && d.p[sym] > 0) prices[sym] = d.p[sym];
-      }
-      renderUI();
+    // Accept ALL prices from server (Binance + TD + Yahoo all validated server-side)
+    prevPrices = {...prices};
+    for (const [sym, price] of Object.entries(d.p)) {
+      if (price > 0) prices[sym] = price;
     }
+    // Receive dailyOpen for % change
+    if (d.dailyOpen) {
+      for (const [sym, open] of Object.entries(d.dailyOpen)) {
+        if (!dailyOpen[sym] && open > 0) dailyOpen[sym] = open;
+      }
+    }
+    renderUI();
   });
   socket.on('positionClosed', d => {
     const pnl = parseFloat(d.pnl);
@@ -1485,7 +1486,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 150);
   });
   // Refresh prices every second for UI
-  setInterval(renderUI, 1000);
+  // renderUI driven by socket 250ms updates
   // Re-render positions P&L every second
   setInterval(() => {
     if (currentBPTab==='positions') updatePosTable();
