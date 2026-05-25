@@ -333,9 +333,9 @@ tr:hover td{background:var(--bg2)}
       </div>
     </div>
   </div>
-  <div id="chartBox" style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">
-    <div id="lwChart" style="flex:1;min-height:0"></div>
-    <div id="rsiBox" style="height:80px;display:none;border-top:1px solid var(--border)"></div>
+  <div id="chartBox" style="flex:1;min-height:0;overflow:hidden;position:relative">
+    <div id="lwChart" style="position:absolute;inset:0"></div>
+    <div id="rsiBox" style="position:absolute;bottom:0;left:0;right:0;height:80px;display:none;border-top:1px solid var(--border)"></div>
   </div>
   <div class="bp">
     <div class="bp-tabs">
@@ -625,9 +625,7 @@ let symFilter = '';
 let sltpOn = false;
 let tradeSide = 'sell';
 let isLive = false;
-let lwChart = null;
-let lwSeries = null;
-let lwVolSeries = null;
+// chart vars defined below
 let currentDepTab = 'btc';
 let currentBPTab = 'positions';
 
@@ -737,16 +735,19 @@ function createLWChart(){
   if(lwRsiChart){lwRsiChart.remove();lwRsiChart=null;}
 
   const box=document.getElementById('chartBox');
-  const mainH=(box.offsetHeight||window.innerHeight-280||(indActive.RSI?320:400));
+  const w = box.offsetWidth  || (window.innerWidth  - 520) || 800;
+  const h = box.offsetHeight || (window.innerHeight - 300) || 400;
 
   const opts={
-    width:box.offsetWidth||800, height:Math.max(mainH,200),
+    width: Math.max(w,200), height: Math.max(h,200),
     layout:{background:{type:'solid',color:'#0b0e11'},textColor:'#848e9c'},
     grid:{vertLines:{color:'rgba(43,47,54,0.3)'},horzLines:{color:'rgba(43,47,54,0.3)'}},
     crosshair:{mode:LightweightCharts.CrosshairMode.Normal},
     rightPriceScale:{borderColor:'#2b2f36',scaleMargins:{top:0.08,bottom:0.08}},
     timeScale:{borderColor:'#2b2f36',timeVisible:true,secondsVisible:false},
   };
+  container.style.width  = opts.width  + 'px';
+  container.style.height = opts.height + 'px';
   lwChart=LightweightCharts.createChart(container,opts);
 
   lwSeries=lwChart.addCandlestickSeries({
@@ -793,14 +794,21 @@ function createLWChart(){
   });
 
   // Resize
-  new ResizeObserver(entries=>{
-    if(!lwChart||!entries[0])return;
-    const{width,height}=entries[0].contentRect;
-    if(width>100&&height>50){
-      lwChart.resize(width,height);
-      if(lwRsiChart)lwRsiChart.resize(width,80);
+  const resizeChart = () => {
+    if (!lwChart) return;
+    const w = box.offsetWidth;
+    const rsiVisible = indActive.RSI;
+    const rsiH = rsiVisible ? 80 : 0;
+    const h = box.offsetHeight - rsiH;
+    if (w > 100 && h > 50) {
+      const el = document.getElementById('lwChart');
+      if (el) { el.style.bottom = rsiH + 'px'; el.style.height = h + 'px'; el.style.width = w + 'px'; }
+      lwChart.resize(w, h);
+      if (lwRsiChart && rsiVisible) lwRsiChart.resize(w, 80);
     }
-  }).observe(box);
+  };
+  new ResizeObserver(resizeChart).observe(box);
+  setTimeout(resizeChart, 100);
 
   applyIndVisibility();
 }
@@ -1029,9 +1037,9 @@ function renderTickers() {
   const el = document.getElementById('tickers');
   if (!el) return;
   el.innerHTML = TICK.map(s => {
-    const p = prices[s]||0;
-    const base = dailyOpen[s] || prevPrices[s] || p;
-    const chg = base ? (p-base)/base*100 : 0;
+    const p = prices[s] || SEEDS[s] || 0;
+    const base = dailyOpen[s] || SEEDS[s] || p;
+    const chg = (base && p && base !== p) ? (p-base)/base*100 : 0;
     const cls = chg>=0?'g':'r';
     return `<div class="ticker" onclick="selectSym('${s}')" title="${s}">
       <span class="tk-sym">${s.replace('USD','')}</span>
@@ -1047,9 +1055,9 @@ function renderSymList() {
     (!symFilter || s.s.toLowerCase().includes(symFilter)||s.n.toLowerCase().includes(symFilter))
   );
   const html = list.map(({s,n,ic,col}) => {
-    const p = prices[s]||0;
-    const pp = prevPrices[s]||p;
-    const chg = pp?(p-pp)/pp*100:0;
+    const p = prices[s] || SEEDS[s] || 0;
+    const base = dailyOpen[s] || SEEDS[s] || p;
+    const chg = (base && p && base !== p) ? (p-base)/base*100 : 0;
     const cls = chg>=0?'g':'r';
     return `<div class="si${s===currentSym?' act':''}" onclick="selectSym('${s}')">
       <div class="si-left">
@@ -1088,7 +1096,7 @@ function mobSelectSym(s) { selectSym(s); mobShow('chart'); }
 
 function updateChartHeader() {
   const s = SYMS.find(x=>x.s===currentSym)||{n:currentSym,cat:''};
-  const p = prices[currentSym]||0;
+  const p = prices[currentSym] || SEEDS[currentSym] || 0;
   const base = dailyOpen[currentSym] || prevPrices[currentSym] || p;
   const chg = base ? (p-base)/base*100 : 0;
   const sp = getSpread(currentSym);
@@ -1106,7 +1114,7 @@ function updateChartHeader() {
 
 function updateOrderForm() {
   const sym = SYMS.find(x=>x.s===currentSym)||{n:currentSym,cat:''};
-  const p = prices[currentSym]||0;
+  const p = prices[currentSym] || SEEDS[currentSym] || 0;
   const sp = getSpread(currentSym);
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   set('ofSym', currentSym+' · '+sym.cat);
@@ -1469,10 +1477,13 @@ document.addEventListener('DOMContentLoaded', () => {
   loadPositions();
   renderUI();
   // Chart: wait for layout to render
-  setTimeout(() => {
-    createLWChart();
-    loadChart('EURUSD', '60');
-  }, 200);
+  // Wait for full layout paint before creating chart
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      createLWChart();
+      loadChart('EURUSD', '60');
+    }, 150);
+  });
   // Refresh prices every second for UI
   setInterval(renderUI, 1000);
   // Re-render positions P&L every second
