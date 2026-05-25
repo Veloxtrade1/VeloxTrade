@@ -44,86 +44,196 @@ const prices = {
   TSLA:342,NVDA:134,NFLX:1285,JPM:267,BAC:47,
 };
 
-// Simulation
+// ── PRICE ENGINE: Multi-source real-time ─────────────────────
+// 1. Binance WebSocket → crypto (instant, free, no key needed)
+// 2. Twelve Data WebSocket → forex pairs (your key)
+// 3. Yahoo Finance poll every 10s → metals/energy/indices/stocks
+// 4. Simulation fills gaps between real ticks (realistic micro-movement)
+
 const mom = {};
 Object.keys(prices).forEach(s => mom[s] = 0);
-function startSim() {
-  const VOL = { BTCUSD:.0004,ETHUSD:.0004,SOLUSD:.0005,XAUUSD:.0002,
-    WTIUSD:.0003,US30:.0002,EURUSD:.00005,GBPUSD:.00005,DEFAULT:.0001 };
-  setInterval(() => {
-    for (const s in prices) {
-      const v = VOL[s] || VOL.DEFAULT;
-      mom[s] = mom[s]*.85 + (Math.random()-.5)*v;
-      prices[s] = parseFloat((prices[s]*(1+mom[s])).toFixed(s.includes('JPY')?3:s==='BTCUSD'||s==='NAS100'||s==='US30'?2:5));
-    }
-  }, 1000);
-}
-
-// Twelve Data
 let tdLive = false;
-function connectTD() {
-  if (!TD_KEY || TD_KEY.length < 10) { startSim(); return; }
-  const ws = new WS(`wss://ws.twelvedata.com/v1/quotes/price?apikey=${TD_KEY}`);
-  const syms = 'EUR/USD,GBP/USD,USD/JPY,USD/CHF,AUD/USD,USD/CAD,BTC/USD,ETH/USD,SOL/USD,BNB/USD,XRP/USD';
-  ws.on('open', () => { tdLive=true; ws.send(JSON.stringify({action:'subscribe',params:{symbols:syms}})); });
+let binanceLive = false;
+let lastRealPrice = {}; // track last known real price per symbol
+
+// Realistic volatility per asset class
+const VOL = {
+  BTCUSD:.00015, ETHUSD:.0002, SOLUSD:.00025, BNBUSD:.00015,
+  XRPUSD:.0003,  ADAUSD:.0003, DOGEUSD:.0004, LTCUSD:.0002,
+  AVAXUSD:.0003, LINKUSD:.0003, DOTUSD:.0003, UNIUSD:.0003, MATICUSD:.0003,
+  EURUSD:.000008, GBPUSD:.00001, USDJPY:.000015, USDCHF:.000012,
+  AUDUSD:.000012, USDCAD:.00001, NZDUSD:.000012,
+  EURGBP:.000008, EURJPY:.000015, GBPJPY:.00002,
+  XAUUSD:.00008, XAGUSD:.0001, WTIUSD:.00015, BRENTUSD:.00015, NGAS:.0002,
+  US30:.00006, SPX500:.00006, NAS100:.00007, DAX40:.00007, FTSE100:.00005,
+  NIKKEI:.00006, ASX200:.00005,
+  AAPL:.00008, MSFT:.00007, AMZN:.0001, GOOGL:.00009, META:.0001,
+  TSLA:.00015, NVDA:.00012, NFLX:.0001, JPM:.00007, BAC:.00008,
+};
+
+// Micro-simulation runs every 250ms for instant feel
+// Only moves price slightly between real data updates
+function microSim() {
+  for (const s in prices) {
+    const v = VOL[s] || 0.0001;
+    mom[s] = mom[s] * 0.9 + (Math.random() - 0.5) * v * 0.3;
+    const raw = prices[s] * (1 + mom[s]);
+    prices[s] = parseFloat(raw.toFixed(
+      s.includes('JPY') ? 3 :
+      ['BTCUSD','US30','NAS100','SPX500','DAX40','NIKKEI','FTSE100','ASX200','AAPL','MSFT','AMZN','GOOGL','META','TSLA','NVDA','NFLX','JPM','BAC'].includes(s) ? 2 : 5
+    ));
+  }
+}
+setInterval(microSim, 250);
+
+// ── BINANCE WEBSOCKET (crypto, instant real prices) ───────────
+function connectBinance() {
+  // Subscribe to all major crypto pairs
+  const streams = [
+    'btcusdt','ethusdt','bnbusdt','solusdt','xrpusdt',
+    'adausdt','ltcusdt','dogeusdt','avaxusdt','linkusdt',
+    'dotusdt','uniusdt','maticusdt'
+  ].map(s => `${s}@miniTicker`).join('/');
+
+  const ws = new WS(`wss://stream.binance.com:9443/stream?streams=${streams}`);
+  ws.on('open', () => {
+    binanceLive = true;
+    console.log('[Binance] WebSocket connected — crypto live');
+  });
   ws.on('message', raw => {
     try {
-      const m = JSON.parse(raw);
-      if (m.event==='price' && m.price > 0) {
-        const map = {
-          'EUR/USD':'EURUSD','GBP/USD':'GBPUSD','USD/JPY':'USDJPY','USD/CHF':'USDCHF',
-          'AUD/USD':'AUDUSD','USD/CAD':'USDCAD',
-          'BTC/USD':'BTCUSD','ETH/USD':'ETHUSD','SOL/USD':'SOLUSD','BNB/USD':'BNBUSD','XRP/USD':'XRPUSD'
-        };
-        const sym = map[m.symbol];
-        if (sym) prices[sym] = parseFloat(m.price);
+      const msg = JSON.parse(raw);
+      const d = msg.data;
+      if (!d || !d.s || !d.c) return;
+      const map = {
+        'BTCUSDT':'BTCUSD','ETHUSDT':'ETHUSD','BNBUSDT':'BNBUSD',
+        'SOLUSDT':'SOLUSD','XRPUSDT':'XRPUSD','ADAUSDT':'ADAUSD',
+        'LTCUSDT':'LTCUSD','DOGEUSDT':'DOGEUSD','AVAXUSDT':'AVAXUSD',
+        'LINKUSDT':'LINKUSD','DOTUSDT':'DOTUSD','UNIUSDT':'UNIUSD',
+        'MATICUSDT':'MATICUSD',
+      };
+      const sym = map[d.s];
+      if (sym && parseFloat(d.c) > 0) {
+        prices[sym] = parseFloat(parseFloat(d.c).toFixed(
+          ['BTCUSD','ETHUSD','BNBUSD'].includes(sym) ? 2 : 4
+        ));
+        lastRealPrice[sym] = prices[sym];
+        mom[sym] = 0; // reset momentum on real tick
       }
     } catch {}
   });
-  ws.on('close', () => { tdLive=false; setTimeout(connectTD,5000); });
+  ws.on('close', () => {
+    binanceLive = false;
+    console.log('[Binance] Disconnected — reconnecting in 5s');
+    setTimeout(connectBinance, 5000);
+  });
+  ws.on('error', e => console.log('[Binance] Error:', e.message));
+}
+
+// ── TWELVE DATA WEBSOCKET (forex) ────────────────────────────
+function connectTD() {
+  if (!TD_KEY || TD_KEY.length < 10) {
+    console.log('[TD] No API key — using simulation for forex');
+    return;
+  }
+  const ws = new WS(`wss://ws.twelvedata.com/v1/quotes/price?apikey=${TD_KEY}`);
+  const syms = 'EUR/USD,GBP/USD,USD/JPY,USD/CHF,AUD/USD,USD/CAD,NZD/USD,EUR/GBP,EUR/JPY,GBP/JPY';
+  ws.on('open', () => {
+    tdLive = true;
+    ws.send(JSON.stringify({ action:'subscribe', params:{ symbols:syms } }));
+    console.log('[TD] WebSocket connected — forex live');
+  });
+  ws.on('message', raw => {
+    try {
+      const m = JSON.parse(raw);
+      if (m.event === 'price' && m.price > 0) {
+        const map = {
+          'EUR/USD':'EURUSD','GBP/USD':'GBPUSD','USD/JPY':'USDJPY','USD/CHF':'USDCHF',
+          'AUD/USD':'AUDUSD','USD/CAD':'USDCAD','NZD/USD':'NZDUSD',
+          'EUR/GBP':'EURGBP','EUR/JPY':'EURJPY','GBP/JPY':'GBPJPY',
+        };
+        const sym = map[m.symbol];
+        if (sym && m.price > 0) {
+          prices[sym] = parseFloat(parseFloat(m.price).toFixed(sym.includes('JPY') ? 3 : 5));
+          lastRealPrice[sym] = prices[sym];
+          mom[sym] = 0;
+        }
+      }
+    } catch {}
+  });
+  ws.on('close', () => { tdLive = false; setTimeout(connectTD, 5000); });
   ws.on('error', () => {});
 }
 
-setInterval(() => io.emit('prices', { p: prices, live: tdLive }), 500);
-// Yahoo Finance server-side polling for metals/energy/indices/stocks
+// ── YAHOO FINANCE POLL (metals, energy, indices, stocks) ──────
 const https2 = require('https');
 function yhFetch(ticker) {
-  return new Promise((res) => {
+  return new Promise(res => {
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1m&range=1d`;
     const req = https2.get(url, {
-      headers: {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36'}
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36' }
     }, r => {
       let d = '';
       r.on('data', c => d += c);
       r.on('end', () => {
-        try { const p = JSON.parse(d)?.chart?.result?.[0]?.meta?.regularMarketPrice; res(p>0?p:null); }
-        catch { res(null); }
+        try {
+          const j = JSON.parse(d);
+          const meta = j?.chart?.result?.[0]?.meta;
+          res(meta?.regularMarketPrice > 0 ? { price: meta.regularMarketPrice, open: meta.regularMarketOpen || meta.chartPreviousClose || 0 } : null);
+        } catch { res(null); }
       });
     });
     req.on('error', () => res(null));
-    req.setTimeout(7000, () => { req.destroy(); res(null); });
+    req.setTimeout(8000, () => { req.destroy(); res(null); });
   });
 }
+
 const YH_POLL = [
   ['GC=F','XAUUSD'],['SI=F','XAGUSD'],['CL=F','WTIUSD'],['BZ=F','BRENTUSD'],['NG=F','NGAS'],
   ['^DJI','US30'],['^GSPC','SPX500'],['^NDX','NAS100'],['^GDAXI','DAX40'],['^FTSE','FTSE100'],
   ['^N225','NIKKEI'],['^AXJO','ASX200'],
   ['AAPL','AAPL'],['MSFT','MSFT'],['AMZN','AMZN'],['GOOGL','GOOGL'],['META','META'],
   ['TSLA','TSLA'],['NVDA','NVDA'],['NFLX','NFLX'],['JPM','JPM'],['BAC','BAC'],
-  ['EURUSD=X','EURUSD'],['GBPUSD=X','GBPUSD'],['USDJPY=X','USDJPY'],['USDCHF=X','USDCHF'],
-  ['AUDUSD=X','AUDUSD'],['USDCAD=X','USDCAD'],['NZDUSD=X','NZDUSD'],
-  ['EURGBP=X','EURGBP'],['EURJPY=X','EURJPY'],['GBPJPY=X','GBPJPY'],
 ];
+
+// Store daily opens for % change
+const dailyOpen = {};
+
 async function pollYahoo() {
-  for (const [ticker, sym] of YH_POLL) {
-    const p = await yhFetch(ticker);
-    if (p && p > 0) prices[sym] = parseFloat(p.toFixed(sym.includes('JPY')?3:sym==='BTCUSD'||sym.includes('00')?2:5));
-    await new Promise(r => setTimeout(r, 200));
+  let updated = 0;
+  // Run in parallel batches of 5
+  for (let i = 0; i < YH_POLL.length; i += 5) {
+    const batch = YH_POLL.slice(i, i + 5);
+    await Promise.allSettled(batch.map(async ([ticker, sym]) => {
+      const result = await yhFetch(ticker);
+      if (result?.price > 0) {
+        prices[sym] = parseFloat(result.price.toFixed(
+          sym.includes('JPY') ? 3 :
+          ['US30','NAS100','SPX500','DAX40','NIKKEI','FTSE100','ASX200'].includes(sym) ? 0 :
+          ['AAPL','MSFT','AMZN','GOOGL','META','TSLA','NVDA','NFLX','JPM','BAC','WTIUSD','BRENTUSD','NGAS','XAGUSD'].includes(sym) ? 2 : 2
+        ));
+        if (!dailyOpen[sym] && result.open > 0) dailyOpen[sym] = result.open;
+        lastRealPrice[sym] = prices[sym];
+        mom[sym] = 0;
+        updated++;
+      }
+    }));
+    await new Promise(r => setTimeout(r, 300));
   }
-  console.log(`[Yahoo] Polled ${YH_POLL.length} prices. XAU=${prices.XAUUSD} BTC=${prices.BTCUSD} EUR=${prices.EURUSD}`);
+  console.log(`[Yahoo] Updated ${updated}/${YH_POLL.length} — XAU=${prices.XAUUSD} WTI=${prices.WTIUSD} US30=${prices.US30}`);
 }
-setTimeout(pollYahoo, 2000);
-setInterval(pollYahoo, 30000);
+
+// Broadcast prices every 250ms for instant feel
+setInterval(() => io.emit('prices', { p: prices, live: tdLive || binanceLive, dailyOpen }), 250);
+
+// Yahoo polls every 10 seconds (fast enough for metals/stocks)
+setTimeout(pollYahoo, 1000);
+setInterval(pollYahoo, 10000);
+
+// Start WebSocket connections
+setTimeout(connectBinance, 200);
+setTimeout(connectTD, 500);
+
 
 
 // ── SL/TP MONITOR ─────────────────────────────────────────────
