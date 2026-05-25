@@ -114,11 +114,12 @@ function connectBinance() {
       };
       const sym = map[d.s];
       if (sym && parseFloat(d.c) > 0) {
-        prices[sym] = parseFloat(parseFloat(d.c).toFixed(
-          ['BTCUSD','ETHUSD','BNBUSD'].includes(sym) ? 2 : 4
-        ));
-        lastRealPrice[sym] = prices[sym];
-        mom[sym] = 0; // reset momentum on real tick
+        const p = parseFloat(parseFloat(d.c).toFixed(['BTCUSD','ETHUSD','BNBUSD'].includes(sym) ? 2 : 4));
+        prices[sym] = p;
+        // d.o = 24h open price from Binance miniTicker
+        if (d.o && parseFloat(d.o) > 0) dailyOpen[sym] = parseFloat(parseFloat(d.o).toFixed(['BTCUSD','ETHUSD','BNBUSD'].includes(sym) ? 2 : 4));
+        lastRealPrice[sym] = p;
+        mom[sym] = 0;
       }
     } catch {}
   });
@@ -189,38 +190,56 @@ function yhFetch(ticker) {
 }
 
 const YH_POLL = [
+  // Metals & Energy (primary - TD doesn't cover these)
   ['GC=F','XAUUSD'],['SI=F','XAGUSD'],['CL=F','WTIUSD'],['BZ=F','BRENTUSD'],['NG=F','NGAS'],
+  // Indices
   ['^DJI','US30'],['^GSPC','SPX500'],['^NDX','NAS100'],['^GDAXI','DAX40'],['^FTSE','FTSE100'],
   ['^N225','NIKKEI'],['^AXJO','ASX200'],
+  // Stocks
   ['AAPL','AAPL'],['MSFT','MSFT'],['AMZN','AMZN'],['GOOGL','GOOGL'],['META','META'],
   ['TSLA','TSLA'],['NVDA','NVDA'],['NFLX','NFLX'],['JPM','JPM'],['BAC','BAC'],
+  // Forex backup (in case TD disconnects)
+  ['EURUSD=X','EURUSD'],['GBPUSD=X','GBPUSD'],['USDJPY=X','USDJPY'],['USDCHF=X','USDCHF'],
+  ['AUDUSD=X','AUDUSD'],['USDCAD=X','USDCAD'],['NZDUSD=X','NZDUSD'],
+  ['EURGBP=X','EURGBP'],['EURJPY=X','EURJPY'],['GBPJPY=X','GBPJPY'],
 ];
 
 // Store daily opens for % change
 const dailyOpen = {};
+// Seed dailyOpen from current prices on startup (will be overwritten by real data)
+// This prevents wild % changes on first load
+function seedDailyOpen() {
+  for (const sym in prices) {
+    if (!dailyOpen[sym]) dailyOpen[sym] = prices[sym];
+  }
+}
+setTimeout(seedDailyOpen, 100);
+
+function fmtPrice(sym, p) {
+  if (sym.includes('JPY')) return parseFloat(p.toFixed(3));
+  if (['US30','NAS100','SPX500','DAX40','NIKKEI','FTSE100','ASX200'].includes(sym)) return Math.round(p);
+  if (['AAPL','MSFT','AMZN','GOOGL','META','TSLA','NVDA','NFLX','JPM','BAC',
+       'XAUUSD','XAGUSD','WTIUSD','BRENTUSD','NGAS','BTCUSD','ETHUSD','BNBUSD'].includes(sym)) return parseFloat(p.toFixed(2));
+  return parseFloat(p.toFixed(5));
+}
 
 async function pollYahoo() {
   let updated = 0;
-  // Run in parallel batches of 5
-  for (let i = 0; i < YH_POLL.length; i += 5) {
-    const batch = YH_POLL.slice(i, i + 5);
-    await Promise.allSettled(batch.map(async ([ticker, sym]) => {
-      const result = await yhFetch(ticker);
-      if (result?.price > 0) {
-        prices[sym] = parseFloat(result.price.toFixed(
-          sym.includes('JPY') ? 3 :
-          ['US30','NAS100','SPX500','DAX40','NIKKEI','FTSE100','ASX200'].includes(sym) ? 0 :
-          ['AAPL','MSFT','AMZN','GOOGL','META','TSLA','NVDA','NFLX','JPM','BAC','WTIUSD','BRENTUSD','NGAS','XAGUSD'].includes(sym) ? 2 : 2
-        ));
-        if (!dailyOpen[sym] && result.open > 0) dailyOpen[sym] = result.open;
-        lastRealPrice[sym] = prices[sym];
-        mom[sym] = 0;
-        updated++;
+  // Run ALL in parallel for speed
+  await Promise.allSettled(YH_POLL.map(async ([ticker, sym]) => {
+    const result = await yhFetch(ticker);
+    if (result?.price > 0) {
+      prices[sym] = fmtPrice(sym, result.price);
+      // Set dailyOpen from Yahoo (real market open price)
+      if (result.open > 0) {
+        dailyOpen[sym] = fmtPrice(sym, result.open);
       }
-    }));
-    await new Promise(r => setTimeout(r, 300));
-  }
-  console.log(`[Yahoo] Updated ${updated}/${YH_POLL.length} — XAU=${prices.XAUUSD} WTI=${prices.WTIUSD} US30=${prices.US30}`);
+      lastRealPrice[sym] = prices[sym];
+      mom[sym] = 0;
+      updated++;
+    }
+  }));
+  console.log(`[Yahoo] ${updated}/${YH_POLL.length} — XAU=${prices.XAUUSD} WTI=${prices.WTIUSD} EUR=${prices.EURUSD} US30=${prices.US30}`);
 }
 
 // Broadcast prices every 250ms for instant feel
