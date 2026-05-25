@@ -240,6 +240,16 @@ tr:hover td{background:var(--bg2)}
 .mn-btn.on,.mn-btn:hover{color:var(--yellow)}
 .mn-btn svg{width:19px;height:19px;fill:currentColor}
 .mob-panel{position:fixed;top:48px;left:0;right:0;bottom:56px;background:var(--bg1);z-index:150;overflow-y:auto;display:none;-webkit-overflow-scrolling:touch}
+.ind-bar{
+  display:flex;align-items:center;gap:4px;padding:4px 8px;
+  border-top:1px solid var(--border);background:var(--bg0);flex-shrink:0;flex-wrap:wrap;
+}
+.ind-btn{
+  padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;cursor:pointer;
+  border:1px solid var(--border);background:none;color:var(--t4);transition:.12s;font-family:var(--font);
+}
+.ind-btn.on{background:var(--bbg);border-color:rgba(24,144,255,.3);color:var(--blue)}
+.ind-btn:hover{color:var(--t2)}
 .mob-panel.open{display:block}
 </style>
 </head>
@@ -312,8 +322,21 @@ tr:hover td{background:var(--bg2)}
       <button class="tf" onclick="setTF('D',this)">1D</button>
       <button class="tf" onclick="setTF('W',this)">1W</button>
     </div>
+    <div class="ind-bar" id="indBar">
+      <button class="ind-btn on" onclick="toggleInd('MA',this)" title="Moving Average 20">MA</button>
+      <button class="ind-btn on" onclick="toggleInd('EMA',this)" title="EMA 50">EMA</button>
+      <button class="ind-btn" onclick="toggleInd('BB',this)" title="Bollinger Bands">BB</button>
+      <button class="ind-btn on" onclick="toggleInd('VOL',this)" title="Volume">VOL</button>
+      <button class="ind-btn" onclick="toggleInd('RSI',this)" title="RSI 14">RSI</button>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+        <span id="ohlcLabel" style="font-size:10px;color:var(--t3);font-family:var(--mono)"></span>
+      </div>
+    </div>
   </div>
-  <div id="chartBox" style="flex:1;min-height:0;overflow:hidden"><div id="lwChart" style="width:100%;height:100%"></div></div>
+  <div id="chartBox" style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">
+    <div id="lwChart" style="flex:1;min-height:0"></div>
+    <div id="rsiBox" style="height:80px;display:none;border-top:1px solid var(--border)"></div>
+  </div>
   <div class="bp">
     <div class="bp-tabs">
       <div class="bp-tab on" onclick="setBPTab('positions',this)">Positions <span id="posCnt" style="background:var(--yellow);color:#000;padding:1px 6px;border-radius:8px;font-size:9px;margin-left:3px">0</span></div>
@@ -593,6 +616,7 @@ const SYMS = [
 // ── STATE ─────────────────────────────────────────────────────
 let prices = {};
 let prevPrices = {};
+let dailyOpen  = {};  // stores yesterday's close / daily open for % change
 let positions = [];
 let currentSym = 'EURUSD';
 let currentTF = '60';
@@ -641,7 +665,7 @@ function getSpread(sym) {
   return 0.00010;
 }
 
-// ── LIGHTWEIGHT CHARTS ────────────────────────────────────────
+// ── LIGHTWEIGHT CHARTS + INDICATORS ─────────────────────────────────────────
 const YF_MAP = {
   EURUSD:'EURUSD=X',GBPUSD:'GBPUSD=X',USDJPY:'USDJPY=X',USDCHF:'USDCHF=X',
   AUDUSD:'AUDUSD=X',USDCAD:'USDCAD=X',NZDUSD:'NZDUSD=X',EURGBP:'EURGBP=X',
@@ -657,97 +681,226 @@ const YF_MAP = {
 };
 const YF_INTERVAL = {'1':'1m','5':'5m','15':'15m','60':'1h','240':'1h','D':'1d','W':'1wk'};
 const YF_RANGE    = {'1':'1d','5':'5d','15':'5d','60':'5d','240':'1mo','D':'1y','W':'2y'};
+const TF_SECONDS  = {'1':60,'5':300,'15':900,'60':3600,'240':14400,'D':86400,'W':604800};
 
-function createLWChart() {
-  const container = document.getElementById('lwChart');
-  if (!container || !window.LightweightCharts) return;
-  if (lwChart) { lwChart.remove(); lwChart = null; lwSeries = null; }
-  const box = document.getElementById('chartBox');
-  const w = box.offsetWidth  || window.innerWidth - 520 || 800;
-  const h = box.offsetHeight || window.innerHeight - 280 || 400;
-  lwChart = LightweightCharts.createChart(container, {
-    width: w, height: h,
-    layout: { background:{type:'solid',color:'#0b0e11'}, textColor:'#848e9c' },
-    grid: { vertLines:{color:'rgba(43,47,54,0.5)'}, horzLines:{color:'rgba(43,47,54,0.5)'} },
-    crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-    rightPriceScale: { borderColor:'#2b2f36' },
-    timeScale: { borderColor:'#2b2f36', timeVisible:true, secondsVisible:false },
+// Indicator toggles
+const indActive = { MA:true, EMA:true, BB:false, VOL:true, RSI:false };
+
+// Chart object refs
+let lwChart=null, lwSeries=null, lwRsiChart=null;
+let maSeries=null, emaSeries=null, bbUpper=null, bbMiddle=null, bbLower=null;
+let rsiSeries=null, rsiOB=null, rsiOS=null;
+let currentCandle=null, lastCandles=[];
+
+// ── MATH ──────────────────────────────────────────────────────────────────────
+function calcSMA(data,period){
+  return data.map((d,i)=>{
+    if(i<period-1)return null;
+    const avg=data.slice(i-period+1,i+1).reduce((s,x)=>s+x.close,0)/period;
+    return{time:d.time,value:avg};
+  }).filter(Boolean);
+}
+function calcEMA(data,period){
+  const k=2/(period+1);let ema=null;
+  return data.map((d,i)=>{
+    if(i===0){ema=d.close;return{time:d.time,value:ema};}
+    ema=d.close*k+ema*(1-k);
+    return{time:d.time,value:ema};
   });
-  lwSeries = lwChart.addCandlestickSeries({
-    upColor:'#0ecb81', downColor:'#f6465d',
-    borderUpColor:'#0ecb81', borderDownColor:'#f6465d',
-    wickUpColor:'#0ecb81', wickDownColor:'#f6465d',
-  });
-  // Resize
-  const chartBox = document.getElementById('chartBox');
-  new ResizeObserver(entries => {
-    if (!lwChart || !entries[0]) return;
-    const {width, height} = entries[0].contentRect;
-    if (width > 100 && height > 100) lwChart.resize(width, height);
-  }).observe(chartBox);
+}
+function calcBB(data,period=20,mult=2){
+  return data.map((d,i)=>{
+    if(i<period-1)return null;
+    const sl=data.slice(i-period+1,i+1).map(x=>x.close);
+    const mean=sl.reduce((s,x)=>s+x,0)/period;
+    const std=Math.sqrt(sl.reduce((s,x)=>s+(x-mean)**2,0)/period);
+    return{time:d.time,upper:mean+mult*std,middle:mean,lower:mean-mult*std};
+  }).filter(Boolean);
+}
+function calcRSI(data,period=14){
+  const res=[];
+  for(let i=1;i<data.length;i++){
+    if(i<period){res.push(null);continue;}
+    let g=0,l=0;
+    for(let j=i-period+1;j<=i;j++){const d=data[j].close-data[j-1].close;if(d>0)g+=d;else l-=d;}
+    const rs=l===0?100:g/l;
+    res.push({time:data[i].time,value:100-100/(1+rs)});
+  }
+  return res.filter(Boolean);
 }
 
-async function loadChart(sym, tf) {
-  if (!lwSeries) createLWChart();
-  if (!lwSeries) return;
-  currentSym = sym; currentTF = tf;
-  currentCandle = null; // reset on every load
-  const ticker   = YF_MAP[sym] || sym;
-  const interval = YF_INTERVAL[tf] || '1h';
-  const range    = YF_RANGE[tf]    || '5d';
-  try {
-    // Use server proxy to avoid CORS/IP blocks
-    const url = `/api/chart/ohlc?symbol=${encodeURIComponent(ticker)}&interval=${interval}&range=${range}`;
-    const res = await fetch(url, {signal: AbortSignal.timeout(10000)});
-    const d   = await res.json();
-    if (!d.candles || !d.candles.length) throw new Error('No candles');
-    const candles = d.candles.map(c => ({time:c.t, open:c.o, high:c.h, low:c.l, close:c.c}));
+// ── CREATE MAIN CHART ─────────────────────────────────────────────────────────
+function createLWChart(){
+  const container=document.getElementById('lwChart');
+  if(!container||!window.LightweightCharts)return;
+  if(lwChart){lwChart.remove();lwChart=null;lwSeries=null;}
+  if(lwRsiChart){lwRsiChart.remove();lwRsiChart=null;}
+
+  const box=document.getElementById('chartBox');
+  const mainH=(box.offsetHeight||window.innerHeight-280||(indActive.RSI?320:400));
+
+  const opts={
+    width:box.offsetWidth||800, height:Math.max(mainH,200),
+    layout:{background:{type:'solid',color:'#0b0e11'},textColor:'#848e9c'},
+    grid:{vertLines:{color:'rgba(43,47,54,0.3)'},horzLines:{color:'rgba(43,47,54,0.3)'}},
+    crosshair:{mode:LightweightCharts.CrosshairMode.Normal},
+    rightPriceScale:{borderColor:'#2b2f36',scaleMargins:{top:0.08,bottom:0.08}},
+    timeScale:{borderColor:'#2b2f36',timeVisible:true,secondsVisible:false},
+  };
+  lwChart=LightweightCharts.createChart(container,opts);
+
+  lwSeries=lwChart.addCandlestickSeries({
+    upColor:'#0ecb81',downColor:'#f6465d',
+    borderUpColor:'#0ecb81',borderDownColor:'#f6465d',
+    wickUpColor:'#0ecb81',wickDownColor:'#f6465d',
+  });
+
+  maSeries  = lwChart.addLineSeries({color:'#f0b90b',lineWidth:1,priceLineVisible:false,lastValueVisible:false,title:'MA20'});
+  emaSeries = lwChart.addLineSeries({color:'#1890ff',lineWidth:1,priceLineVisible:false,lastValueVisible:false,title:'EMA50'});
+  bbUpper   = lwChart.addLineSeries({color:'rgba(138,43,226,0.7)',lineWidth:1,lineStyle:2,priceLineVisible:false,lastValueVisible:false});
+  bbMiddle  = lwChart.addLineSeries({color:'rgba(138,43,226,0.4)',lineWidth:1,lineStyle:1,priceLineVisible:false,lastValueVisible:false});
+  bbLower   = lwChart.addLineSeries({color:'rgba(138,43,226,0.7)',lineWidth:1,lineStyle:2,priceLineVisible:false,lastValueVisible:false});
+
+  // RSI pane
+  const rsiBox=document.getElementById('rsiBox');
+  if(rsiBox){
+    lwRsiChart=LightweightCharts.createChart(rsiBox,{
+      width:box.offsetWidth||800,height:80,
+      layout:{background:{type:'solid',color:'#0b0e11'},textColor:'#848e9c'},
+      grid:{vertLines:{color:'rgba(43,47,54,0.2)'},horzLines:{color:'rgba(43,47,54,0.2)'}},
+      rightPriceScale:{borderColor:'#2b2f36',scaleMargins:{top:0.1,bottom:0.1}},
+      timeScale:{visible:false,borderColor:'#2b2f36'},
+      crosshair:{mode:LightweightCharts.CrosshairMode.Normal},
+    });
+    rsiSeries=lwRsiChart.addLineSeries({color:'#8b5cf6',lineWidth:1.5,priceLineVisible:false,title:'RSI14'});
+    rsiOB    =lwRsiChart.addLineSeries({color:'rgba(246,70,93,0.4)',lineWidth:1,priceLineVisible:false,lastValueVisible:false});
+    rsiOS    =lwRsiChart.addLineSeries({color:'rgba(14,203,129,0.4)',lineWidth:1,priceLineVisible:false,lastValueVisible:false});
+    lwChart.timeScale().subscribeVisibleLogicalRangeChange(r=>{if(lwRsiChart&&r)lwRsiChart.timeScale().setVisibleLogicalRange(r);});
+  }
+
+  // Crosshair OHLC display
+  lwChart.subscribeCrosshairMove(param=>{
+    if(!param.time)return;
+    const d=param.seriesData?.get(lwSeries);
+    if(!d)return;
+    const lbl=document.getElementById('ohlcLabel');
+    if(!lbl)return;
+    const up=d.close>=d.open;
+    lbl.innerHTML=`<span style="color:var(--t3)">O</span> <b style="color:${up?'#0ecb81':'#f6465d'}">${fmt(currentSym,d.open)}</b>&nbsp;
+      <span style="color:var(--t3)">H</span> <b style="color:#0ecb81">${fmt(currentSym,d.high)}</b>&nbsp;
+      <span style="color:var(--t3)">L</span> <b style="color:#f6465d">${fmt(currentSym,d.low)}</b>&nbsp;
+      <span style="color:var(--t3)">C</span> <b style="color:${up?'#0ecb81':'#f6465d'}">${fmt(currentSym,d.close)}</b>`;
+  });
+
+  // Resize
+  new ResizeObserver(entries=>{
+    if(!lwChart||!entries[0])return;
+    const{width,height}=entries[0].contentRect;
+    if(width>100&&height>50){
+      lwChart.resize(width,height);
+      if(lwRsiChart)lwRsiChart.resize(width,80);
+    }
+  }).observe(box);
+
+  applyIndVisibility();
+}
+
+function applyIndVisibility(){
+  if(!lwChart)return;
+  maSeries?.applyOptions({visible:indActive.MA});
+  emaSeries?.applyOptions({visible:indActive.EMA});
+  bbUpper?.applyOptions({visible:indActive.BB});
+  bbMiddle?.applyOptions({visible:indActive.BB});
+  bbLower?.applyOptions({visible:indActive.BB});
+  const rb=document.getElementById('rsiBox');
+  if(rb)rb.style.display=indActive.RSI?'block':'none';
+}
+
+function toggleInd(name,el){
+  indActive[name]=!indActive[name];
+  el.classList.toggle('on',indActive[name]);
+  applyIndVisibility();
+  if(lastCandles.length)setIndicatorData(lastCandles);
+  if(name==='RSI'&&indActive.RSI&&lastCandles.length)setRSIData(lastCandles);
+}
+
+function setIndicatorData(candles){
+  if(!candles.length||!lwChart)return;
+  if(indActive.MA)  maSeries?.setData(calcSMA(candles,20));
+  else              maSeries?.setData([]);
+  if(indActive.EMA) emaSeries?.setData(calcEMA(candles,50));
+  else              emaSeries?.setData([]);
+  if(indActive.BB){
+    const bb=calcBB(candles,20,2);
+    bbUpper?.setData(bb.map(d=>({time:d.time,value:d.upper})));
+    bbMiddle?.setData(bb.map(d=>({time:d.time,value:d.middle})));
+    bbLower?.setData(bb.map(d=>({time:d.time,value:d.lower})));
+  } else {
+    bbUpper?.setData([]);bbMiddle?.setData([]);bbLower?.setData([]);
+  }
+}
+
+function setRSIData(candles){
+  if(!rsiSeries||!candles.length)return;
+  const rsi=calcRSI(candles,14);
+  rsiSeries.setData(rsi);
+  const times=rsi.map(d=>d.time);
+  if(times.length){rsiOB?.setData(times.map(t=>({time:t,value:70})));rsiOS?.setData(times.map(t=>({time:t,value:30})));}
+}
+
+async function loadChart(sym,tf){
+  if(!lwSeries)createLWChart();
+  if(!lwSeries)return;
+  currentSym=sym;currentTF=tf;currentCandle=null;lastCandles=[];
+  const ticker=YF_MAP[sym]||sym;
+  const interval=YF_INTERVAL[tf]||'1h';
+  const range=YF_RANGE[tf]||'5d';
+  try{
+    const res=await fetch(`/api/chart/ohlc?symbol=${encodeURIComponent(ticker)}&interval=${interval}&range=${range}`,{signal:AbortSignal.timeout(10000)});
+    const d=await res.json();
+    if(!d.candles?.length)throw new Error('No candles');
+    const candles=d.candles.map(c=>({time:c.t,open:c.o,high:c.h,low:c.l,close:c.c,volume:c.v||0}));
     lwSeries.setData(candles);
     lwChart.timeScale().fitContent();
-    currentCandle = null; // reset live tick tracker
-    if (d.price > 0) { prices[sym] = d.price; SEEDS[sym] = d.price; }
-  } catch(e) {
-    console.warn('Chart load failed:', e.message);
-    // Fallback: simulate candles from seed price
-    const p = prices[sym] || SEEDS[sym] || 1;
-    const now = Math.floor(Date.now()/1000);
-    const tfSec2 = TF_SECONDS[tf] || 3600;
-    const candles = [];
-    for (let i = 60; i >= 0; i--) {
-      const rand = () => 1 + (Math.random() - 0.5) * 0.002;
-      const o = p * rand(), c = p * rand();
-      candles.push({ time: now - i*tfSec2, open:o, high:Math.max(o,c)*1.001, low:Math.min(o,c)*0.999, close:c });
+    lastCandles=candles;
+    setIndicatorData(candles);
+    if(indActive.RSI)setRSIData(candles);
+    if(d.price>0){prices[sym]=d.price;SEEDS[sym]=d.price;}
+  }catch(e){
+    console.warn('Chart fail:',e.message);
+    const p=prices[sym]||SEEDS[sym]||1;
+    const now=Math.floor(Date.now()/1000);
+    const tfSec=TF_SECONDS[tf]||3600;
+    const candles=[];
+    let prev=p;
+    for(let i=60;i>=0;i--){
+      const o=prev,c=o*(1+(Math.random()-.5)*0.003);
+      candles.push({time:now-i*tfSec,open:o,high:Math.max(o,c)*1.002,low:Math.min(o,c)*0.998,close:c,volume:Math.floor(Math.random()*5000+1000)});
+      prev=c;
     }
-    lwSeries.setData(candles);
-    currentCandle = null;
+    lwSeries.setData(candles);lastCandles=candles;
+    setIndicatorData(candles);
   }
   updateChartHeader();
 }
 
-// Live tick — update the CURRENT candle (snap to timeframe boundary, not new candle every second)
-const TF_SECONDS = {'1':60,'5':300,'15':900,'60':3600,'240':14400,'D':86400,'W':604800};
-let currentCandle = null; // {time, open, high, low, close}
-
-function tickChart() {
-  if (!lwSeries || !currentSym) return;
-  const p = prices[currentSym];
-  if (!p) return;
-  const tfSec = TF_SECONDS[currentTF] || 3600;
-  // Snap timestamp to current candle boundary
-  const candleTime = Math.floor(Date.now() / 1000 / tfSec) * tfSec;
-
-  if (!currentCandle || currentCandle.time !== candleTime) {
-    // New candle period — start fresh
-    currentCandle = { time: candleTime, open: p, high: p, low: p, close: p };
-  } else {
-    // Update existing candle
-    currentCandle.high  = Math.max(currentCandle.high, p);
-    currentCandle.low   = Math.min(currentCandle.low, p);
-    currentCandle.close = p;
+// Live candle tick
+function tickChart(){
+  if(!lwSeries||!currentSym)return;
+  const p=prices[currentSym];if(!p)return;
+  const tfSec=TF_SECONDS[currentTF]||3600;
+  const ct=Math.floor(Date.now()/1000/tfSec)*tfSec;
+  if(!currentCandle||currentCandle.time!==ct){
+    currentCandle={time:ct,open:p,high:p,low:p,close:p};
+  }else{
+    currentCandle.high=Math.max(currentCandle.high,p);
+    currentCandle.low=Math.min(currentCandle.low,p);
+    currentCandle.close=p;
   }
   lwSeries.update(currentCandle);
 }
-setInterval(tickChart, 1000);
+setInterval(tickChart,1000);
+
 
 function setTF(tf, el) {
   document.querySelectorAll('.tf').forEach(b=>b.classList.remove('on'));
@@ -770,34 +923,40 @@ const YF_SYM_MAP = {
 };
 
 async function fetchRealPrices() {
-  // Fetch via server proxy (avoids CORS/IP blocks)
   const ytSymbols = Object.keys(YF_SYM_MAP).join(',');
   try {
-    const r = await fetch(`/api/prices/yahoo?symbols=${encodeURIComponent(ytSymbols)}`,
-      {signal: AbortSignal.timeout(10000)});
+    const r = await fetch(`/api/prices/yahoo?symbols=${encodeURIComponent(ytSymbols)}`, {signal:AbortSignal.timeout(10000)});
     const data = await r.json();
-    for (const [yt, price] of Object.entries(data)) {
+    for (const [yt, info] of Object.entries(data)) {
       const sym = YF_SYM_MAP[yt];
-      if (sym && price > 0) {
+      if (!sym) continue;
+      // Handle both {price,open} object and plain number
+      const price = typeof info === 'object' ? info.price : info;
+      const open  = typeof info === 'object' ? info.open  : 0;
+      if (price > 0) {
         prevPrices[sym] = prices[sym];
-        prices[sym] = price;
+        prices[sym]     = price;
       }
+      if (open > 0 && !dailyOpen[sym]) dailyOpen[sym] = open;
     }
-  } catch (e) { console.warn('Yahoo proxy failed:', e.message); }
+  } catch(e) { console.warn('Yahoo proxy:', e.message); }
 
-  // Crypto via server proxy
   try {
-    const r = await fetch('/api/prices/crypto', {signal: AbortSignal.timeout(8000)});
+    const r = await fetch('/api/prices/crypto', {signal:AbortSignal.timeout(8000)});
     const d = await r.json();
     const CG = {
       'bitcoin':'BTCUSD','ethereum':'ETHUSD','binancecoin':'BNBUSD','solana':'SOLUSD',
       'ripple':'XRPUSD','cardano':'ADAUSD','litecoin':'LTCUSD','dogecoin':'DOGEUSD',
       'avalanche-2':'AVAXUSD','chainlink':'LINKUSD','polkadot':'DOTUSD','uniswap':'UNIUSD'
     };
-    for (const [id, sym] of Object.entries(CG)) {
-      if (d[id]?.usd > 0) { prevPrices[sym] = prices[sym]; prices[sym] = d[id].usd; }
+    for (const [id,sym] of Object.entries(CG)) {
+      if (d[id]?.usd > 0) {
+        prevPrices[sym] = prices[sym];
+        prices[sym] = d[id].usd;
+        if (!dailyOpen[sym]) dailyOpen[sym] = d[id].usd; // first poll = daily open
+      }
     }
-  } catch (e) { console.warn('Crypto proxy failed:', e.message); }
+  } catch(e) { console.warn('Crypto proxy:', e.message); }
 
   renderUI();
 }
@@ -871,8 +1030,8 @@ function renderTickers() {
   if (!el) return;
   el.innerHTML = TICK.map(s => {
     const p = prices[s]||0;
-    const pp = prevPrices[s]||p;
-    const chg = pp ? (p-pp)/pp*100 : 0;
+    const base = dailyOpen[s] || prevPrices[s] || p;
+    const chg = base ? (p-base)/base*100 : 0;
     const cls = chg>=0?'g':'r';
     return `<div class="ticker" onclick="selectSym('${s}')" title="${s}">
       <span class="tk-sym">${s.replace('USD','')}</span>
@@ -930,8 +1089,8 @@ function mobSelectSym(s) { selectSym(s); mobShow('chart'); }
 function updateChartHeader() {
   const s = SYMS.find(x=>x.s===currentSym)||{n:currentSym,cat:''};
   const p = prices[currentSym]||0;
-  const pp = prevPrices[currentSym]||p;
-  const chg = pp?(p-pp)/pp*100:0;
+  const base = dailyOpen[currentSym] || prevPrices[currentSym] || p;
+  const chg = base ? (p-base)/base*100 : 0;
   const sp = getSpread(currentSym);
   const cls = chg>=0?'g':'r';
   const set = (id,v,c)=>{ const el=document.getElementById(id); if(el){el.textContent=v;if(c)el.className=c;}};
@@ -1324,4 +1483,3 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
- 
